@@ -440,20 +440,17 @@ export default function Purchases() {
                     ))
                   )}
                 </TableBody>
-                {purchases && purchases.length > 0 && (
-                  <tfoot>
-                    <tr className="print-total-row bg-muted/50 font-bold">
-                      <td className="print-hide"></td>
-                      <td className="print-only"></td>
-                      <td colSpan={7} className="text-right p-2 px-3">GRAND TOTAL</td>
-                      <td className="text-right p-2 px-3">{formatCurrency(totalHarga)}</td>
-                      <td className="p-2"></td>
-                      <td className="print-hide"></td>
-                    </tr>
-                  </tfoot>
-                )}
               </Table>
             </div>
+
+            {purchases && purchases.length > 0 && (
+              <div className="flex justify-end mt-2 border rounded-md overflow-hidden">
+                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center">
+                  <span>GRAND TOTAL</span>
+                  <span>{formatCurrency(totalHarga)}</span>
+                </div>
+              </div>
+            )}
 
             <div className="print-only print-signature mt-16 flex justify-between px-10">
               <div className="text-center">

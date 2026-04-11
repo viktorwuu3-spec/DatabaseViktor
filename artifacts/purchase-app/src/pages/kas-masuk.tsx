@@ -383,19 +383,17 @@ export default function KasMasuk() {
                     ))
                   )}
                 </TableBody>
-                {cashInData?.items && cashInData.items.length > 0 && (
-                  <tfoot>
-                    <tr className="print-total-row bg-muted/50 font-bold">
-                      <td className="print-hide"></td>
-                      <td className="print-only"></td>
-                      <td colSpan={3} className="text-right p-2 px-3">TOTAL KAS MASUK</td>
-                      <td className="text-right p-2 px-3">{formatCurrency(cashInData.total_kas_masuk)}</td>
-                      <td className="print-hide"></td>
-                    </tr>
-                  </tfoot>
-                )}
               </Table>
             </div>
+
+            {cashInData?.items && cashInData.items.length > 0 && (
+              <div className="flex justify-end mt-2 border rounded-md overflow-hidden">
+                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center">
+                  <span>TOTAL KAS MASUK</span>
+                  <span>{formatCurrency(cashInData.total_kas_masuk)}</span>
+                </div>
+              </div>
+            )}
 
             <div className="print-only print-signature mt-16 flex justify-between px-10">
               <div className="text-center">
