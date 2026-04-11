@@ -336,6 +336,15 @@ export default function KasMasuk() {
               <p className="print-subtitle">
                 Total {cashInData?.items?.length ?? 0} transaksi &bull; Dicetak: {formatDate(new Date().toISOString())}
               </p>
+              {(search || startDate || endDate || selectedIds.size > 0) && (
+                <div className="mt-2 text-xs italic text-gray-600">
+                  {startDate && endDate && <p>Periode: {formatDate(startDate)} s/d {formatDate(endDate)}</p>}
+                  {startDate && !endDate && <p>Dari: {formatDate(startDate)}</p>}
+                  {!startDate && endDate && <p>Sampai: {formatDate(endDate)}</p>}
+                  {search && <p>Pencarian: &quot;{search}&quot;</p>}
+                  {selectedIds.size > 0 && <p>Data terpilih: {selectedIds.size} item</p>}
+                </div>
+              )}
               {cashInData && (
                 <div className="text-left mt-4 mb-4 text-xs">
                   <p>Total Kas Masuk: {formatCurrency(cashInData.total_kas_masuk)}</p>

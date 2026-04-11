@@ -30,6 +30,7 @@ interface Column {
 interface PdfReportOptions {
   title: string;
   subtitle?: string;
+  filterInfo?: string[];
   columns: Column[];
   data: Record<string, unknown>[];
   summaryLines?: string[];
@@ -42,9 +43,36 @@ interface PdfReportOptions {
   layout?: "portrait" | "landscape";
 }
 
+export function buildFilterInfoLines(params: {
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  search?: string;
+  selectedCount?: number;
+}): string[] {
+  const lines: string[] = [];
+  if (params.startDate && params.endDate) {
+    lines.push(`Periode: ${formatTanggal(params.startDate)} s/d ${formatTanggal(params.endDate)}`);
+  } else if (params.startDate) {
+    lines.push(`Dari: ${formatTanggal(params.startDate)}`);
+  } else if (params.endDate) {
+    lines.push(`Sampai: ${formatTanggal(params.endDate)}`);
+  }
+  if (params.kategori) {
+    lines.push(`Kategori: ${params.kategori}`);
+  }
+  if (params.search) {
+    lines.push(`Pencarian: "${params.search}"`);
+  }
+  if (params.selectedCount && params.selectedCount > 0) {
+    lines.push(`Data terpilih: ${params.selectedCount} item`);
+  }
+  return lines;
+}
+
 export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument {
   const {
-    title, subtitle, columns: rawColumns, data, summaryLines,
+    title, subtitle, filterInfo, columns: rawColumns, data, summaryLines,
     footerSummaryLines,
     totalLabel, totalValue, totalColumnIndex,
     signatureLeft, signatureRight,
@@ -98,6 +126,14 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
       width: usableWidth,
       align: "right",
     });
+    if (filterInfo && filterInfo.length > 0) {
+      doc.moveDown(0.2);
+      doc.fontSize(8).font("Helvetica-Oblique").fillColor("#4b5563");
+      filterInfo.forEach((line) => {
+        doc.text(line, marginLeft, doc.y, { width: usableWidth, align: "center" });
+      });
+      doc.fillColor("black").font("Helvetica");
+    }
     doc.moveDown(0.3);
   }
 

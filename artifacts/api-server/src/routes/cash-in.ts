@@ -14,7 +14,7 @@ import {
 } from "@workspace/api-zod";
 import type { SQL } from "drizzle-orm";
 import * as XLSX from "xlsx";
-import { generatePdfReport, formatRupiah, formatTanggal } from "./pdf-utils.js";
+import { generatePdfReport, formatRupiah, formatTanggal, buildFilterInfoLines } from "./pdf-utils.js";
 
 const router: IRouter = Router();
 
@@ -42,16 +42,11 @@ function buildCashInFilters(params: {
 }
 
 async function queryCashIn(conditions: SQL[], ids?: number[]) {
-  const allConditions = [...conditions];
   if (ids && ids.length > 0) {
-    allConditions.push(inArray(cashInTable.id, ids));
+    return db.select().from(cashInTable).where(inArray(cashInTable.id, ids)).orderBy(cashInTable.id);
   }
-  return allConditions.length > 0
-    ? db
-        .select()
-        .from(cashInTable)
-        .where(and(...allConditions))
-        .orderBy(cashInTable.id)
+  return conditions.length > 0
+    ? db.select().from(cashInTable).where(and(...conditions)).orderBy(cashInTable.id)
     : db.select().from(cashInTable).orderBy(cashInTable.id);
 }
 
@@ -166,15 +161,44 @@ router.get("/cash-in/export/excel", async (req, res) => {
           .filter((n) => !isNaN(n))
       : undefined;
     const data = await queryCashIn(conditions, ids);
+    const totals = await getCashTotals();
 
-    const ws = XLSX.utils.json_to_sheet(
-      data.map((r) => ({
-        No: r.nomor,
-        Tanggal: r.tanggal,
-        Keterangan: r.keterangan,
-        "Jumlah Kas Masuk": r.jumlah_kas_masuk,
-      })),
-    );
+    const filterInfo = buildFilterInfoLines({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      search: params.search,
+      selectedCount: ids?.length,
+    });
+
+    const headerRows: Record<string, string>[] = [
+      { No: "LAPORAN KAS MASUK" },
+    ];
+    if (filterInfo.length > 0) {
+      filterInfo.forEach((line) => headerRows.push({ No: line }));
+    }
+    headerRows.push({});
+
+    const dataRows = data.map((r) => ({
+      No: r.nomor,
+      Tanggal: r.tanggal,
+      Keterangan: r.keterangan,
+      "Jumlah Kas Masuk": r.jumlah_kas_masuk,
+    }));
+
+    const totalKasMasuk = data.reduce((sum, r) => sum + (r.jumlah_kas_masuk ?? 0), 0);
+
+    const summaryRows: Record<string, unknown>[] = [
+      {},
+      { Keterangan: "TOTAL KAS MASUK", "Jumlah Kas Masuk": totalKasMasuk },
+      {},
+      { Keterangan: "Total Kas Masuk (Semua)", "Jumlah Kas Masuk": totals.total_kas_masuk },
+      { Keterangan: "Total Pengeluaran", "Jumlah Kas Masuk": totals.total_pengeluaran },
+      { Keterangan: "Sisa Kas", "Jumlah Kas Masuk": totals.sisa_kas },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(headerRows, { skipHeader: true });
+    XLSX.utils.sheet_add_json(ws, dataRows, { origin: headerRows.length });
+    XLSX.utils.sheet_add_json(ws, summaryRows, { skipHeader: true, origin: headerRows.length + 1 + dataRows.length });
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Kas Masuk");
@@ -208,9 +232,17 @@ router.get("/cash-in/export/pdf", async (req, res) => {
 
     const totalKasMasuk = data.reduce((sum, r) => sum + (r.jumlah_kas_masuk ?? 0), 0);
 
+    const filterInfo = buildFilterInfoLines({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      search: params.search,
+      selectedCount: ids?.length,
+    });
+
     const doc = generatePdfReport({
       title: "LAPORAN KAS MASUK",
       subtitle: `Total ${data.length} transaksi`,
+      filterInfo,
       layout: "portrait",
       columns: [
         { label: "No.", width: 40, align: "center", getValue: (_r, i) => String(i + 1) },

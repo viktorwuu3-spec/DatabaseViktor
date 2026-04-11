@@ -173,7 +173,7 @@ export default function InvoicePage() {
   };
   const updateItem = (idx: number, field: keyof InvoiceItem, value: string | number) => {
     const updated = [...items];
-    (updated[idx] as Record<string, unknown>)[field] = value;
+    (updated[idx] as unknown as Record<string, unknown>)[field] = value;
     setItems(updated);
   };
 
@@ -190,6 +190,14 @@ export default function InvoicePage() {
     else setSelectedIds(new Set(invoices?.map((i) => i.id) ?? []));
   };
 
+  const buildInvoiceExportUrl = (base: string) => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (selectedIds.size > 0) params.set("ids", Array.from(selectedIds).join(","));
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
+  };
+
   const triggerSubmit = useCallback(() => { handleSubmit(); }, [formData, items, editingInvoice]);
   const { formRef, handleKeyDown } = useFormNavigation(triggerSubmit);
 
@@ -202,11 +210,15 @@ export default function InvoicePage() {
             <p className="text-muted-foreground mt-1">Kelola invoice dan memo.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.open(`${API_BASE}/invoices/export/excel`, "_blank")}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" />Excel
+            <Button variant="outline" asChild>
+              <a href={buildInvoiceExportUrl(`${API_BASE}/invoices/export/excel`)} target="_blank" rel="noopener noreferrer">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />Excel{selectedIds.size > 0 && ` (${selectedIds.size})`}
+              </a>
             </Button>
-            <Button variant="outline" onClick={() => window.open(`${API_BASE}/invoices/export/pdf`, "_blank")}>
-              <FileText className="w-4 h-4 mr-2" />PDF
+            <Button variant="outline" asChild>
+              <a href={buildInvoiceExportUrl(`${API_BASE}/invoices/export/pdf`)} target="_blank" rel="noopener noreferrer">
+                <FileText className="w-4 h-4 mr-2" />PDF{selectedIds.size > 0 && ` (${selectedIds.size})`}
+              </a>
             </Button>
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="w-4 h-4 mr-2" />Cetak
@@ -245,6 +257,12 @@ export default function InvoicePage() {
               <p className="print-subtitle">
                 Total {invoices?.length ?? 0} invoice &bull; Dicetak: {formatDate(new Date().toISOString())}
               </p>
+              {(search || selectedIds.size > 0) && (
+                <div className="mt-2 text-xs italic text-gray-600">
+                  {search && <p>Pencarian: &quot;{search}&quot;</p>}
+                  {selectedIds.size > 0 && <p>Data terpilih: {selectedIds.size} item</p>}
+                </div>
+              )}
             </div>
 
             <div className="rounded-md border print:border-0">

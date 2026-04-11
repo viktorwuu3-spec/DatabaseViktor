@@ -37,7 +37,7 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `GET/POST /api/purchases` — list (with search, startDate/endDate, kategori filter) and create purchases
 - `GET/PUT/DELETE /api/purchases/:id` — single purchase operations
 - `POST /api/purchases/bulk-delete` — bulk delete
-- `GET /api/purchases/export/excel|pdf` — exports with selective ids
+- `GET /api/purchases/export/excel|pdf` — exports with filter params + selective ids
 - `GET/POST /api/purchase-plans` — same as purchases
 - `GET/PUT/DELETE /api/purchase-plans/:id`, `/bulk-delete`, `/export/*`
 - `GET/POST /api/cash-in` — list (with dynamic cash totals) and create
@@ -47,7 +47,7 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `GET/POST /api/invoices` — list (with search) and create invoices with items (transactional)
 - `GET/PUT/DELETE /api/invoices/:id` — single invoice operations (transactional)
 - `POST /api/invoices/bulk-delete` — bulk delete invoices (transactional)
-- `GET /api/invoices/export/excel|pdf` — list exports
+- `GET /api/invoices/export/excel|pdf` — list exports with filter params + selective ids
 - `GET /api/invoices/:id/pdf` — single invoice PDF with signature
 - `GET /api/financial-summary` — total_pengeluaran, total_kas_masuk, saldo_akhir, kekurangan_dana
 - `POST /api/ai-command` — AI assistant endpoint (natural language to structured actions)
@@ -105,5 +105,14 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - PDF exports for purchases and purchase-plans include financial summary footer (total pengeluaran, total kas masuk, saldo akhir, kekurangan dana)
 - `/api/financial-summary` endpoint provides dynamic financial calculations
 - Negative cash balance highlighted in red
+
+### Advanced filtered export system
+- All export endpoints (PDF, Excel) accept filter params (search, startDate, endDate, kategori, ids)
+- PDF reports display active filter info (period, category, search term, selected count) in italic below the subtitle
+- Excel exports include title header rows, filter info rows, data rows, and financial summary footer rows
+- Browser print layout (Cetak) shows filter info and financial summary in print-only sections
+- Selected IDs take priority over other filters in export queries (selected > filtered > all)
+- `buildFilterInfoLines()` utility in `pdf-utils.ts` generates consistent filter descriptions across all reports
+- Invoice exports support search and selected IDs filtering
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

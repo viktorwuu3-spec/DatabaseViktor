@@ -15,7 +15,7 @@ import {
 } from "@workspace/api-zod";
 import type { SQL } from "drizzle-orm";
 import * as XLSX from "xlsx";
-import { generatePdfReport, formatRupiah, formatTanggal } from "./pdf-utils.js";
+import { generatePdfReport, formatRupiah, formatTanggal, buildFilterInfoLines } from "./pdf-utils.js";
 
 const router: IRouter = Router();
 
@@ -47,12 +47,11 @@ function buildPlanFilters(params: {
 }
 
 async function queryPlans(conditions: SQL[], ids?: number[]) {
-  const allConditions = [...conditions];
   if (ids && ids.length > 0) {
-    allConditions.push(inArray(purchasePlansTable.id, ids));
+    return db.select().from(purchasePlansTable).where(inArray(purchasePlansTable.id, ids)).orderBy(purchasePlansTable.id);
   }
-  return allConditions.length > 0
-    ? db.select().from(purchasePlansTable).where(and(...allConditions)).orderBy(purchasePlansTable.id)
+  return conditions.length > 0
+    ? db.select().from(purchasePlansTable).where(and(...conditions)).orderBy(purchasePlansTable.id)
     : db.select().from(purchasePlansTable).orderBy(purchasePlansTable.id);
 }
 
@@ -126,21 +125,58 @@ router.get("/purchase-plans/export/excel", async (req, res) => {
     const ids = params.ids ? params.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
     const data = await queryPlans(conditions, ids);
 
-    const ws = XLSX.utils.json_to_sheet(
-      data.map((r) => ({
-        No: r.nomor,
-        Tanggal: r.tanggal,
-        Kategori: r.kategori || "-",
-        Keterangan: r.keterangan,
-        Jumlah: r.jumlah,
-        Satuan: r.satuan,
-        "Harga Satuan": r.harga_satuan,
-        "Harga Total": r.harga_total,
-        Supplier: r.supplier || "-",
-        Kontak: r.supplier_contact || "-",
-        Catatan: r.catatan,
-      })),
-    );
+    const filterInfo = buildFilterInfoLines({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      kategori: params.kategori,
+      search: params.search,
+      selectedCount: ids?.length,
+    });
+
+    const headerRows: Record<string, string>[] = [
+      { No: "LAPORAN RENCANA PEMBELIAN" },
+    ];
+    if (filterInfo.length > 0) {
+      filterInfo.forEach((line) => headerRows.push({ No: line }));
+    }
+    headerRows.push({});
+
+    const dataRows = data.map((r) => ({
+      No: r.nomor,
+      Tanggal: r.tanggal,
+      Kategori: r.kategori || "-",
+      Keterangan: r.keterangan,
+      Jumlah: r.jumlah,
+      Satuan: r.satuan,
+      "Harga Satuan": r.harga_satuan,
+      "Harga Total": r.harga_total,
+      Supplier: r.supplier || "-",
+      Kontak: r.supplier_contact || "-",
+      Catatan: r.catatan,
+    }));
+
+    const grandTotal = data.reduce((sum, r) => sum + (r.harga_total ?? 0), 0);
+    const [cashInResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${cashInTable.jumlah_kas_masuk}), 0)` })
+      .from(cashInTable);
+    const totalKasMasuk = Number(cashInResult.total) || 0;
+    const saldoAkhir = totalKasMasuk - grandTotal;
+
+    const summaryRows: Record<string, unknown>[] = [
+      {},
+      { Keterangan: "GRAND TOTAL", "Harga Total": grandTotal },
+      {},
+      { Keterangan: "Total Pengajuan", "Harga Total": grandTotal },
+      { Keterangan: "Total Kas Masuk", "Harga Total": totalKasMasuk },
+      { Keterangan: "Saldo Akhir", "Harga Total": saldoAkhir },
+    ];
+    if (saldoAkhir < 0) {
+      summaryRows.push({ Keterangan: "Kekurangan Dana", "Harga Total": Math.abs(saldoAkhir) });
+    }
+
+    const ws = XLSX.utils.json_to_sheet(headerRows, { skipHeader: true });
+    XLSX.utils.sheet_add_json(ws, dataRows, { origin: headerRows.length });
+    XLSX.utils.sheet_add_json(ws, summaryRows, { skipHeader: true, origin: headerRows.length + 1 + dataRows.length });
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Rencana Pembelian");
@@ -181,9 +217,18 @@ router.get("/purchase-plans/export/pdf", async (req, res) => {
       summaryLines.push(`Kekurangan Dana: ${formatRupiah(Math.abs(saldoAkhir))}`);
     }
 
+    const filterInfo = buildFilterInfoLines({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      kategori: params.kategori,
+      search: params.search,
+      selectedCount: ids?.length,
+    });
+
     const doc = generatePdfReport({
       title: "LAPORAN RENCANA PEMBELIAN",
       subtitle: `Total ${data.length} rencana`,
+      filterInfo,
       layout: "landscape",
       columns: [
         { label: "No.", width: 35, align: "center", getValue: (_r, i) => String(i + 1) },

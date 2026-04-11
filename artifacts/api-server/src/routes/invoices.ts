@@ -4,7 +4,7 @@ import { invoicesTable, invoiceItemsTable } from "@workspace/db";
 import { eq, ilike, inArray } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import * as XLSX from "xlsx";
-import { generatePdfReport, formatRupiah, formatTanggal } from "./pdf-utils.js";
+import { generatePdfReport, formatRupiah, formatTanggal, buildFilterInfoLines } from "./pdf-utils.js";
 
 function validateInvoiceData(data: Record<string, unknown>, items: unknown[]) {
   const errors: string[] = [];
@@ -84,9 +84,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/export/pdf", async (_req, res) => {
+router.get("/export/pdf", async (req, res) => {
   try {
-    const invoices = await db.select().from(invoicesTable).orderBy(invoicesTable.id);
+    const searchParam = typeof req.query.search === "string" ? req.query.search : "";
+    const idsParam = typeof req.query.ids === "string" ? req.query.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
+
+    let query = db.select().from(invoicesTable);
+    if (idsParam && idsParam.length > 0) {
+      query = query.where(inArray(invoicesTable.id, idsParam)) as typeof query;
+    } else if (searchParam) {
+      query = query.where(ilike(invoicesTable.nomor_invoice, `%${searchParam}%`)) as typeof query;
+    }
+    const invoices = await query.orderBy(invoicesTable.id);
+
     const allData = await Promise.all(
       invoices.map(async (inv) => {
         const items = await db.select().from(invoiceItemsTable).where(eq(invoiceItemsTable.invoice_id, inv.id));
@@ -97,9 +107,15 @@ router.get("/export/pdf", async (_req, res) => {
 
     const grandTotal = allData.reduce((sum, inv) => sum + inv.total_invoice, 0);
 
+    const filterInfo = buildFilterInfoLines({
+      search: searchParam || undefined,
+      selectedCount: idsParam?.length,
+    });
+
     const doc = generatePdfReport({
       title: "DAFTAR INVOICE / MEMO",
       subtitle: `Total ${allData.length} invoice`,
+      filterInfo,
       layout: "landscape",
       columns: [
         { label: "No.", width: 35, align: "center", getValue: (_r, i) => String(i + 1) },
@@ -127,10 +143,33 @@ router.get("/export/pdf", async (_req, res) => {
   }
 });
 
-router.get("/export/excel", async (_req, res) => {
+router.get("/export/excel", async (req, res) => {
   try {
-    const invoices = await db.select().from(invoicesTable).orderBy(invoicesTable.id);
-    const allData = await Promise.all(
+    const searchParam = typeof req.query.search === "string" ? req.query.search : "";
+    const idsParam = typeof req.query.ids === "string" ? req.query.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
+
+    let query = db.select().from(invoicesTable);
+    if (idsParam && idsParam.length > 0) {
+      query = query.where(inArray(invoicesTable.id, idsParam)) as typeof query;
+    } else if (searchParam) {
+      query = query.where(ilike(invoicesTable.nomor_invoice, `%${searchParam}%`)) as typeof query;
+    }
+    const invoices = await query.orderBy(invoicesTable.id);
+
+    const filterInfo = buildFilterInfoLines({
+      search: searchParam || undefined,
+      selectedCount: idsParam?.length,
+    });
+
+    const headerRows: Record<string, string>[] = [
+      { No: "DAFTAR INVOICE / MEMO" },
+    ];
+    if (filterInfo.length > 0) {
+      filterInfo.forEach((line) => headerRows.push({ No: line }));
+    }
+    headerRows.push({});
+
+    const dataRows = await Promise.all(
       invoices.map(async (inv, idx) => {
         const items = await db.select().from(invoiceItemsTable).where(eq(invoiceItemsTable.invoice_id, inv.id));
         const total = items.reduce((sum, item) => sum + item.jumlah * item.harga_satuan, 0);
@@ -146,8 +185,17 @@ router.get("/export/excel", async (_req, res) => {
       })
     );
 
+    const grandTotal = dataRows.reduce((sum, r) => sum + (r["Total Invoice"] as number), 0);
+    const summaryRows: Record<string, unknown>[] = [
+      {},
+      { Keterangan: "GRAND TOTAL", "Total Invoice": grandTotal },
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(headerRows, { skipHeader: true });
+    XLSX.utils.sheet_add_json(ws, dataRows, { origin: headerRows.length });
+    XLSX.utils.sheet_add_json(ws, summaryRows, { skipHeader: true, origin: headerRows.length + 1 + dataRows.length });
+
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(allData);
     XLSX.utils.book_append_sheet(wb, ws, "Invoice");
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

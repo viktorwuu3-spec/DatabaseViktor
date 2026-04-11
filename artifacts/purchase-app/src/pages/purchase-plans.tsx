@@ -9,6 +9,7 @@ import {
   useBulkDeletePurchasePlans,
   getGetDashboardSummaryQueryKey,
   getGetRecentActivityQueryKey,
+  useGetDashboardSummary,
 } from "@workspace/api-client-react";
 import type {
   PurchasePlan,
@@ -78,6 +79,7 @@ export default function PurchasePlans() {
   if (kategori) queryParams.kategori = kategori;
 
   const { data: plans, isLoading } = useGetPurchasePlans(queryParams);
+  const { data: dashboardSummary } = useGetDashboardSummary();
 
   const createMutation = useCreatePurchasePlan();
   const updateMutation = useUpdatePurchasePlan();
@@ -354,6 +356,16 @@ export default function PurchasePlans() {
               <p className="print-subtitle">
                 Total {plans?.length ?? 0} rencana &bull; Dicetak: {formatDate(new Date().toISOString())}
               </p>
+              {(search || startDate || endDate || kategori || selectedIds.size > 0) && (
+                <div className="mt-2 text-xs italic text-gray-600">
+                  {startDate && endDate && <p>Periode: {formatDate(startDate)} s/d {formatDate(endDate)}</p>}
+                  {startDate && !endDate && <p>Dari: {formatDate(startDate)}</p>}
+                  {!startDate && endDate && <p>Sampai: {formatDate(endDate)}</p>}
+                  {kategori && <p>Kategori: {kategori}</p>}
+                  {search && <p>Pencarian: &quot;{search}&quot;</p>}
+                  {selectedIds.size > 0 && <p>Data terpilih: {selectedIds.size} item</p>}
+                </div>
+              )}
             </div>
 
             <div className="rounded-md border print:border-0">
@@ -454,6 +466,18 @@ export default function PurchasePlans() {
                   <span>GRAND TOTAL</span>
                   <span>{formatCurrency(totalHarga)}</span>
                 </div>
+              </div>
+            )}
+
+            {dashboardSummary && (
+              <div className="print-only text-left mt-4 mb-2 text-xs">
+                <p>Total Pengajuan: {formatCurrency(totalHarga)}</p>
+                <p>Total Kas Masuk: {formatCurrency(dashboardSummary.total_kas_masuk)}</p>
+                <hr className="my-1 border-gray-400 w-48" />
+                <p className="font-bold">Saldo Akhir: {formatCurrency(dashboardSummary.total_kas_masuk - totalHarga)}</p>
+                {dashboardSummary.total_kas_masuk - totalHarga < 0 && (
+                  <p className="text-red-600 font-bold">Kekurangan Dana: {formatCurrency(Math.abs(dashboardSummary.total_kas_masuk - totalHarga))}</p>
+                )}
               </div>
             )}
 

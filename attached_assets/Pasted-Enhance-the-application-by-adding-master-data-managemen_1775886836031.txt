@@ -1,0 +1,226 @@
+Enhance the application by adding master data management for Categories and Suppliers with full CRUD functionality and smart dropdown selection.
+
+==================================================
+
+1. CATEGORY MASTER DATA
+   ==================================================
+
+Create new table:
+
+categories
+
+Fields:
+
+* id (INTEGER PRIMARY KEY)
+* nama_kategori (TEXT, unique)
+
+==================================================
+FEATURES (CATEGORY)
+===================
+
+Create CRUD system:
+
+* Add category
+* Edit category
+* Delete category
+* List all categories
+
+API endpoints:
+
+* GET /categories
+* POST /categories
+* PUT /categories/:id
+* DELETE /categories/:id
+
+==================================================
+FRONTEND (CATEGORY)
+===================
+
+Create page:
+/public/categories.html
+
+Features:
+
+* Input form:
+  nama_kategori
+
+* Table list:
+
+  * nama_kategori
+  * Edit button
+  * Delete button
+
+==================================================
+INTEGRATION (CATEGORY)
+======================
+
+In forms:
+
+* pembelian
+* rencana pembelian
+
+Replace kategori input with:
+
+→ SEARCHABLE DROPDOWN (IMPORTANT)
+
+REQUIREMENTS:
+
+* User can type to search
+* User can still type new value manually
+* Show suggestions from database
+* If not found → allow new input
+
+==================================================
+2. SUPPLIER MASTER DATA
+=======================
+
+Create table:
+
+suppliers
+
+Fields:
+
+* id (INTEGER PRIMARY KEY)
+* nama_supplier (TEXT)
+* kontak_supplier (TEXT)
+
+==================================================
+FEATURES (SUPPLIER)
+===================
+
+CRUD system:
+
+* Add supplier
+* Edit supplier
+* Delete supplier
+* List suppliers
+
+API endpoints:
+
+* GET /suppliers
+* POST /suppliers
+* PUT /suppliers/:id
+* DELETE /suppliers/:id
+
+==================================================
+FRONTEND (SUPPLIER)
+===================
+
+Create page:
+/public/suppliers.html
+
+Features:
+
+* Input form:
+  nama_supplier
+  kontak_supplier
+
+* Table list:
+
+  * nama_supplier
+  * kontak_supplier
+  * Edit
+  * Delete
+
+==================================================
+INTEGRATION (SUPPLIER)
+======================
+
+In forms:
+
+* pembelian
+* rencana pembelian
+
+Replace supplier input with:
+
+→ SEARCHABLE DROPDOWN (VERY IMPORTANT)
+
+REQUIREMENTS:
+
+* User can type to search supplier name
+
+* Dropdown shows matching results
+
+* When supplier selected:
+  → otomatis isi kontak_supplier
+
+* BUT:
+
+  * User can still manually edit contact if needed
+
+==================================================
+3. SEARCHABLE DROPDOWN IMPLEMENTATION
+=====================================
+
+Use:
+
+* Custom JavaScript OR library like Select2 / Tom Select
+
+FEATURES:
+
+* Typing filters list
+* Keyboard friendly
+* Fast selection
+* Works on mobile
+
+==================================================
+4. UX REQUIREMENTS
+==================
+
+* No need to scroll long lists
+* Fast typing experience
+* Smooth dropdown interaction
+
+==================================================
+5. VALIDATION
+=============
+
+Category:
+
+* nama_kategori required
+* must be unique
+
+Supplier:
+
+* nama_supplier required
+* kontak optional but must be valid string
+
+==================================================
+6. SAFETY RULES
+===============
+
+* Prevent duplicate categories
+* Prevent duplicate suppliers (optional warning)
+* Confirm before delete
+
+==================================================
+7. DATA CONSISTENCY
+===================
+
+* If category deleted:
+  → do NOT break existing data
+  → keep old value as text
+
+* If supplier deleted:
+  → existing records remain unchanged
+
+==================================================
+8. OPTIONAL (RECOMMENDED)
+=========================
+
+* Add quick-add feature:
+  → "Tambah kategori baru" from dropdown
+  → "Tambah supplier baru" from dropdown
+
+==================================================
+9. IMPORTANT RULES
+==================
+
+* Do NOT break existing forms
+* Keep UI consistent
+* Ensure dropdown works smoothly
+* Ensure performance is good
+
+==================================================
+
+Build a clean, fast, and professional master data system similar to ERP applications.

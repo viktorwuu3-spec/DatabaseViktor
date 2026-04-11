@@ -9,6 +9,7 @@ import {
   useBulkDeletePurchases,
   getGetDashboardSummaryQueryKey,
   getGetRecentActivityQueryKey,
+  useGetDashboardSummary,
 } from "@workspace/api-client-react";
 import type { Purchase, PurchaseInput } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -75,6 +76,7 @@ export default function Purchases() {
   if (kategori) queryParams.kategori = kategori;
 
   const { data: purchases, isLoading } = useGetPurchases(queryParams);
+  const { data: dashboardSummary } = useGetDashboardSummary();
 
   const createMutation = useCreatePurchase();
   const updateMutation = useUpdatePurchase();
@@ -349,6 +351,16 @@ export default function Purchases() {
               <p className="print-subtitle">
                 Total {purchases?.length ?? 0} transaksi &bull; Dicetak: {formatDate(new Date().toISOString())}
               </p>
+              {(search || startDate || endDate || kategori || selectedIds.size > 0) && (
+                <div className="mt-2 text-xs italic text-gray-600">
+                  {startDate && endDate && <p>Periode: {formatDate(startDate)} s/d {formatDate(endDate)}</p>}
+                  {startDate && !endDate && <p>Dari: {formatDate(startDate)}</p>}
+                  {!startDate && endDate && <p>Sampai: {formatDate(endDate)}</p>}
+                  {kategori && <p>Kategori: {kategori}</p>}
+                  {search && <p>Pencarian: &quot;{search}&quot;</p>}
+                  {selectedIds.size > 0 && <p>Data terpilih: {selectedIds.size} item</p>}
+                </div>
+              )}
             </div>
 
             <div className="rounded-md border print:border-0">
@@ -449,6 +461,18 @@ export default function Purchases() {
                   <span>GRAND TOTAL</span>
                   <span>{formatCurrency(totalHarga)}</span>
                 </div>
+              </div>
+            )}
+
+            {dashboardSummary && (
+              <div className="print-only text-left mt-4 mb-2 text-xs">
+                <p>Total Pengeluaran: {formatCurrency(totalHarga)}</p>
+                <p>Total Kas Masuk: {formatCurrency(dashboardSummary.total_kas_masuk)}</p>
+                <hr className="my-1 border-gray-400 w-48" />
+                <p className="font-bold">Saldo Akhir: {formatCurrency(dashboardSummary.total_kas_masuk - totalHarga)}</p>
+                {dashboardSummary.total_kas_masuk - totalHarga < 0 && (
+                  <p className="text-red-600 font-bold">Kekurangan Dana: {formatCurrency(Math.abs(dashboardSummary.total_kas_masuk - totalHarga))}</p>
+                )}
               </div>
             )}
 
