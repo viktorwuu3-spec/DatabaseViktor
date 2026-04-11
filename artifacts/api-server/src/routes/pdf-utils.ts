@@ -35,6 +35,7 @@ interface PdfReportOptions {
   summaryLines?: string[];
   totalLabel?: string;
   totalValue?: string;
+  totalColumnIndex?: number;
   signatureLeft: string;
   signatureRight: string;
   layout?: "portrait" | "landscape";
@@ -43,7 +44,8 @@ interface PdfReportOptions {
 export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument {
   const {
     title, subtitle, columns, data, summaryLines,
-    totalLabel, totalValue, signatureLeft, signatureRight,
+    totalLabel, totalValue, totalColumnIndex,
+    signatureLeft, signatureRight,
     layout = "landscape",
   } = options;
 
@@ -55,12 +57,15 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
   });
 
   const pageWidth = layout === "landscape" ? 841.89 : 595.28;
+  const pageHeight = layout === "landscape" ? 595.28 : 841.89;
   const marginLeft = 40;
   const marginRight = 40;
+  const marginBottom = 50;
   const usableWidth = pageWidth - marginLeft - marginRight;
-  const pageBottom = layout === "landscape" ? 555.28 - 40 : 841.89 - 40;
-  const rowHeight = 20;
-  const headerHeight = 24;
+  const pageBottom = pageHeight - marginBottom;
+  const rowHeight = 18;
+  const headerHeight = 22;
+  const padding = 4;
 
   const tableWidth = columns.reduce((sum, col) => sum + col.width, 0);
   const tableLeft = marginLeft;
@@ -83,91 +88,134 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
       width: usableWidth,
       align: "right",
     });
-    doc.moveDown(0.5);
+    doc.moveDown(0.3);
   }
 
   function drawSummaryBox() {
     if (!summaryLines || summaryLines.length === 0) return;
-    const boxTop = doc.y;
     doc.fontSize(9).font("Helvetica");
     summaryLines.forEach((line) => {
       doc.text(line, marginLeft + 10, doc.y, { width: usableWidth - 20 });
     });
-    doc.moveDown(0.5);
+    doc.moveDown(0.3);
   }
 
   function drawTableHeader(y: number): number {
     doc.rect(tableLeft, y, tableWidth, headerHeight).fill("#2563eb");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(8);
+
+    doc.strokeColor("white").lineWidth(0.5);
     let x = tableLeft;
+    columns.forEach((col, i) => {
+      if (i > 0) {
+        doc.moveTo(x, y).lineTo(x, y + headerHeight).stroke();
+      }
+      x += col.width;
+    });
+
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(7.5);
+    x = tableLeft;
     columns.forEach((col) => {
-      const textAlign = col.align || "left";
-      const padding = 4;
       doc.text(col.label, x + padding, y + 6, {
         width: col.width - padding * 2,
-        align: textAlign,
+        align: col.align || "left",
+        lineBreak: false,
       });
       x += col.width;
     });
-    doc.fillColor("black");
+    doc.fillColor("black").strokeColor("#d1d5db");
     return y + headerHeight;
   }
 
   function drawRow(y: number, row: Record<string, unknown>, index: number, isEven: boolean): number {
     if (isEven) {
+      doc.save();
       doc.rect(tableLeft, y, tableWidth, rowHeight).fill("#f0f4ff");
+      doc.restore();
     }
-    doc.fillColor("black").font("Helvetica").fontSize(7.5);
+
+    doc.fillColor("black").font("Helvetica").fontSize(7);
     let x = tableLeft;
     columns.forEach((col) => {
       const val = col.getValue(row, index);
-      const textAlign = col.align || "left";
-      const padding = 4;
-      doc.text(val, x + padding, y + 5, {
+      doc.text(val, x + padding, y + 4, {
         width: col.width - padding * 2,
-        align: textAlign,
+        align: col.align || "left",
         lineBreak: false,
       });
       x += col.width;
     });
-    doc.strokeColor("#d1d5db").lineWidth(0.5);
+
+    doc.strokeColor("#e5e7eb").lineWidth(0.3);
     doc.moveTo(tableLeft, y + rowHeight).lineTo(tableRight, y + rowHeight).stroke();
+
+    doc.strokeColor("#e5e7eb").lineWidth(0.3);
+    x = tableLeft;
+    columns.forEach((col, i) => {
+      if (i > 0) {
+        doc.moveTo(x, y).lineTo(x, y + rowHeight).stroke();
+      }
+      x += col.width;
+    });
+
+    doc.moveTo(tableLeft, y).lineTo(tableLeft, y + rowHeight).stroke();
+    doc.moveTo(tableRight, y).lineTo(tableRight, y + rowHeight).stroke();
+
     return y + rowHeight;
   }
 
   function drawTotalRow(y: number) {
     if (!totalLabel || !totalValue) return y;
-    doc.rect(tableLeft, y, tableWidth, headerHeight).fill("#1e40af");
-    doc.fillColor("white").font("Helvetica-Bold").fontSize(9);
-    doc.text(totalLabel, tableLeft + 4, y + 6, {
-      width: tableWidth * 0.6,
-      align: "left",
-    });
-    doc.text(totalValue, tableLeft + tableWidth * 0.6, y + 6, {
-      width: tableWidth * 0.4 - 4,
+
+    if (y + headerHeight + 10 > pageBottom) {
+      doc.addPage();
+      y = 40;
+    }
+
+    const totalHeight = 24;
+    doc.rect(tableLeft, y, tableWidth, totalHeight).fill("#1e40af");
+
+    const colIdx = totalColumnIndex ?? columns.length - 1;
+    let labelEndX = tableLeft;
+    for (let i = 0; i < colIdx; i++) {
+      labelEndX += columns[i].width;
+    }
+    const valueX = labelEndX;
+    const valueWidth = columns[colIdx].width;
+
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(8);
+    doc.text(totalLabel, tableLeft + padding, y + 7, {
+      width: labelEndX - tableLeft - padding * 2,
       align: "right",
     });
+    doc.text(totalValue, valueX + padding, y + 7, {
+      width: valueWidth - padding * 2,
+      align: "right",
+    });
+
     doc.fillColor("black");
-    return y + headerHeight;
+    return y + totalHeight;
   }
 
   function drawSignature(y: number) {
-    if (y > pageBottom - 100) {
+    if (y > pageBottom - 110) {
       doc.addPage();
       y = 60;
     }
     y += 30;
-    doc.font("Helvetica").fontSize(9);
-    doc.text(signatureLeft, marginLeft + 20, y);
+    doc.font("Helvetica").fontSize(9).fillColor("black");
+    doc.text(signatureLeft, marginLeft + 30, y);
     doc.text(signatureRight, pageWidth - marginRight - 180, y);
     y += 60;
-    doc.moveTo(marginLeft + 20, y).lineTo(marginLeft + 170, y).stroke();
+    doc.strokeColor("black").lineWidth(0.5);
+    doc.moveTo(marginLeft + 30, y).lineTo(marginLeft + 180, y).stroke();
     doc.moveTo(pageWidth - marginRight - 180, y).lineTo(pageWidth - marginRight - 30, y).stroke();
-    y += 5;
-    doc.fontSize(8).text("Nama / Tanda Tangan", marginLeft + 20, y);
+    y += 4;
+    doc.fontSize(7).fillColor("#6b7280");
+    doc.text("Nama / Tanda Tangan", marginLeft + 30, y);
     doc.text("Nama / Tanda Tangan", pageWidth - marginRight - 180, y);
-    y += 15;
-    doc.text("Tanggal: _______________", marginLeft + 20, y);
+    y += 14;
+    doc.fillColor("black").fontSize(8);
+    doc.text("Tanggal: _______________", marginLeft + 30, y);
     doc.text("Tanggal: _______________", pageWidth - marginRight - 180, y);
   }
 
@@ -175,11 +223,11 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
     const totalPages = doc.bufferedPageRange().count;
     for (let i = 0; i < totalPages; i++) {
       doc.switchToPage(i);
-      doc.fontSize(7).font("Helvetica").fillColor("#6b7280");
+      doc.fontSize(7).font("Helvetica").fillColor("#9ca3af");
       doc.text(
         `Halaman ${i + 1} dari ${totalPages}`,
         marginLeft,
-        layout === "landscape" ? 555.28 - 25 : 841.89 - 25,
+        pageHeight - 30,
         { width: usableWidth, align: "center" }
       );
     }
@@ -189,11 +237,11 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
   drawHeader();
   drawSummaryBox();
 
-  let currentY = doc.y + 5;
+  let currentY = doc.y + 4;
   currentY = drawTableHeader(currentY);
 
   data.forEach((row, index) => {
-    if (currentY + rowHeight > pageBottom - 20) {
+    if (currentY + rowHeight > pageBottom - 10) {
       doc.addPage();
       currentY = 40;
       currentY = drawTableHeader(currentY);

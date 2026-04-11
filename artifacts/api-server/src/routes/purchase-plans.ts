@@ -184,6 +184,7 @@ router.get("/purchase-plans/export/pdf", async (req, res) => {
       data: data as unknown as Record<string, unknown>[],
       totalLabel: "GRAND TOTAL",
       totalValue: formatRupiah(grandTotal),
+      totalColumnIndex: 8,
       signatureLeft: "Diajukan oleh,",
       signatureRight: "Disetujui oleh,",
     });

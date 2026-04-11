@@ -227,6 +227,7 @@ router.get("/cash-in/export/pdf", async (req, res) => {
       ],
       totalLabel: "TOTAL KAS MASUK",
       totalValue: formatRupiah(totalKasMasuk),
+      totalColumnIndex: 4,
       signatureLeft: "Dibuat oleh,",
       signatureRight: "Diketahui oleh,",
     });

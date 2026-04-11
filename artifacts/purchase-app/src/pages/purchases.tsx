@@ -182,8 +182,6 @@ export default function Purchases() {
   const allSelected =
     purchases && purchases.length > 0 && selectedIds.size === purchases.length;
 
-  const totalJumlah =
-    purchases?.reduce((sum, p) => sum + Number(p.jumlah), 0) || 0;
   const totalHarga =
     purchases?.reduce((sum, p) => sum + Number(p.harga_total), 0) || 0;
 
@@ -447,9 +445,7 @@ export default function Purchases() {
                     <tr className="print-total-row bg-muted/50 font-bold">
                       <td className="print-hide"></td>
                       <td className="print-only"></td>
-                      <td colSpan={4} className="text-right p-2 px-3">GRAND TOTAL</td>
-                      <td className="text-right p-2 px-3">{totalJumlah}</td>
-                      <td colSpan={2} className="p-2"></td>
+                      <td colSpan={7} className="text-right p-2 px-3">GRAND TOTAL</td>
                       <td className="text-right p-2 px-3">{formatCurrency(totalHarga)}</td>
                       <td className="p-2"></td>
                       <td className="print-hide"></td>
