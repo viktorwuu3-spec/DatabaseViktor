@@ -20,8 +20,8 @@ function validateInvoiceData(data: Record<string, unknown>, items: unknown[]) {
   if (!Array.isArray(items) || items.length === 0) {
     errors.push("Minimal 1 item diperlukan");
   } else {
-    items.forEach((item: any, idx: number) => {
-      if (!item.nama_item || typeof item.nama_item !== "string" || !item.nama_item.trim()) {
+    items.forEach((item: Record<string, unknown>, idx: number) => {
+      if (!item.nama_item || typeof item.nama_item !== "string" || !(item.nama_item as string).trim()) {
         errors.push(`Item ${idx + 1}: nama item wajib diisi`);
       }
       if (!item.jumlah || typeof item.jumlah !== "number" || item.jumlah <= 0) {
@@ -162,11 +162,12 @@ router.get("/bulk-delete", (_req, res) => {
   res.status(405).json({ error: "Use POST method" });
 });
 
-router.post("/bulk-delete", async (req, res) => {
+router.post("/bulk-delete", async (req, res): Promise<void> => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: "IDs required" });
+      res.status(400).json({ error: "IDs required" });
+      return;
     }
     await db.transaction(async (tx) => {
       await tx.delete(invoiceItemsTable).where(inArray(invoiceItemsTable.invoice_id, ids));
@@ -178,22 +179,28 @@ router.post("/bulk-delete", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req, res): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const result = await getInvoiceWithItems(id);
-    if (!result) return res.status(404).json({ error: "Invoice not found" });
+    if (!result) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch invoice" });
   }
 });
 
-router.get("/:id/pdf", async (req, res) => {
+router.get("/:id/pdf", async (req, res): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const invoice = await getInvoiceWithItems(id);
-    if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+    if (!invoice) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
 
     const PDFDocument = (await import("pdfkit")).default;
     const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -228,7 +235,7 @@ router.get("/:id/pdf", async (req, res) => {
     let y = tableTop + 22;
     doc.fillColor("black").font("Helvetica").fontSize(8);
 
-    invoice.items.forEach((item, idx) => {
+    invoice.items.forEach((item: { nama_item: string; jumlah: number; satuan: string; harga_satuan: number; total_item: number }, idx: number) => {
       if (idx % 2 === 0) {
         doc.save();
         doc.rect(50, y, 495, 18).fill("#f0f4ff");
@@ -262,8 +269,10 @@ router.get("/:id/pdf", async (req, res) => {
     doc.text("Diterima oleh,", 380, y, { align: "left" });
     doc.text("________________", 70, y + 60);
     doc.text("________________", 370, y + 60);
-    doc.text("Nama / Tanda Tangan", 60, y + 75, { fontSize: 7 });
-    doc.text("Nama / Tanda Tangan", 360, y + 75, { fontSize: 7 });
+    doc.fontSize(7);
+    doc.text("Nama / Tanda Tangan", 60, y + 75);
+    doc.text("Nama / Tanda Tangan", 360, y + 75);
+    doc.fontSize(9);
     doc.text("Tanggal: _______________", 50, y + 90);
     doc.text("Tanggal: _______________", 350, y + 90);
 
@@ -273,13 +282,14 @@ router.get("/:id/pdf", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res): Promise<void> => {
   try {
     const { items, ...invoiceData } = req.body;
 
     const errors = validateInvoiceData(invoiceData, items);
     if (errors.length > 0) {
-      return res.status(400).json({ error: errors.join("; ") });
+      res.status(400).json({ error: errors.join("; ") });
+      return;
     }
 
     const result = await db.transaction(async (tx) => {
@@ -312,18 +322,22 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req, res): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const { items, ...invoiceData } = req.body;
 
     const errors = validateInvoiceData(invoiceData, items);
     if (errors.length > 0) {
-      return res.status(400).json({ error: errors.join("; ") });
+      res.status(400).json({ error: errors.join("; ") });
+      return;
     }
 
     const existing = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
-    if (!existing.length) return res.status(404).json({ error: "Invoice not found" });
+    if (!existing.length) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
 
     await db.transaction(async (tx) => {
       await tx.update(invoicesTable).set({
