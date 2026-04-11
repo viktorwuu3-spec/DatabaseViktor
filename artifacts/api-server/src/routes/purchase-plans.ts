@@ -73,7 +73,18 @@ router.post("/purchase-plans", async (req, res) => {
 
 router.get("/purchase-plans/export/excel", async (req, res) => {
   try {
-    const data = await db.select().from(purchasePlansTable).orderBy(purchasePlansTable.id);
+    const parsed = GetPurchasePlansQueryParams.safeParse(req.query);
+    const search = parsed.success ? parsed.data.search : undefined;
+    const tanggal = parsed.success ? parsed.data.tanggal : undefined;
+
+    const conditions = [];
+    if (search) conditions.push(ilike(purchasePlansTable.keterangan, `%${search}%`));
+    if (tanggal) conditions.push(eq(purchasePlansTable.tanggal, tanggal));
+
+    const data =
+      conditions.length > 0
+        ? await db.select().from(purchasePlansTable).where(and(...conditions)).orderBy(purchasePlansTable.id)
+        : await db.select().from(purchasePlansTable).orderBy(purchasePlansTable.id);
 
     const ws = XLSX.utils.json_to_sheet(
       data.map((r) => ({
@@ -104,7 +115,18 @@ router.get("/purchase-plans/export/excel", async (req, res) => {
 
 router.get("/purchase-plans/export/pdf", async (req, res) => {
   try {
-    const data = await db.select().from(purchasePlansTable).orderBy(purchasePlansTable.id);
+    const parsed = GetPurchasePlansQueryParams.safeParse(req.query);
+    const search = parsed.success ? parsed.data.search : undefined;
+    const tanggal = parsed.success ? parsed.data.tanggal : undefined;
+
+    const conditions = [];
+    if (search) conditions.push(ilike(purchasePlansTable.keterangan, `%${search}%`));
+    if (tanggal) conditions.push(eq(purchasePlansTable.tanggal, tanggal));
+
+    const data =
+      conditions.length > 0
+        ? await db.select().from(purchasePlansTable).where(and(...conditions)).orderBy(purchasePlansTable.id)
+        : await db.select().from(purchasePlansTable).orderBy(purchasePlansTable.id);
 
     const doc = new PDFDocument({ margin: 40, size: "A4", layout: "landscape" });
     res.setHeader("Content-Type", "application/pdf");
