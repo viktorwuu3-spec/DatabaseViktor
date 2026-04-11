@@ -13,4 +13,6 @@ export interface DashboardSummary {
   total_planned: number;
   this_month_purchases: number;
   this_month_plans: number;
+  total_kas_masuk: number;
+  sisa_kas: number;
 }

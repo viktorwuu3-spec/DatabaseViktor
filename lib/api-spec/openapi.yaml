@@ -14,10 +14,14 @@ tags:
     description: Purchase data operations
   - name: purchase-plans
     description: Purchase plan operations
+  - name: cash-in
+    description: Cash in (Kas Masuk) operations
   - name: dashboard
     description: Dashboard and summary operations
   - name: backup
     description: Database backup operations
+  - name: ai
+    description: AI assistant operations
 paths:
   /healthz:
     get:
@@ -495,6 +499,197 @@ paths:
                 type: string
                 format: binary
 
+  /cash-in:
+    get:
+      operationId: getCashInList
+      tags: [cash-in]
+      summary: Get all cash in entries
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of cash in entries with calculated totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashInResponse"
+    post:
+      operationId: createCashIn
+      tags: [cash-in]
+      summary: Create a new cash in entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CashInInput"
+      responses:
+        "201":
+          description: Created cash in entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashIn"
+
+  /cash-in/{id}:
+    put:
+      operationId: updateCashIn
+      tags: [cash-in]
+      summary: Update a cash in entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CashInInput"
+      responses:
+        "200":
+          description: Updated cash in entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CashIn"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCashIn
+      tags: [cash-in]
+      summary: Delete a cash in entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /cash-in/bulk-delete:
+    post:
+      operationId: bulkDeleteCashIn
+      tags: [cash-in]
+      summary: Delete multiple cash in entries by IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteRequest"
+      responses:
+        "200":
+          description: Bulk delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /cash-in/export/excel:
+    get:
+      operationId: exportCashInExcel
+      tags: [cash-in]
+      summary: Export cash in as Excel file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
+      responses:
+        "200":
+          description: Excel file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /cash-in/export/pdf:
+    get:
+      operationId: exportCashInPdf
+      tags: [cash-in]
+      summary: Export cash in as PDF file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
+      responses:
+        "200":
+          description: PDF file download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
   /dashboard/summary:
     get:
       operationId: getDashboardSummary
@@ -520,6 +715,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RecentActivity"
+
+  /ai-command:
+    post:
+      operationId: sendAiCommand
+      tags: [ai]
+      summary: Send a natural language command to AI assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiCommandRequest"
+      responses:
+        "200":
+          description: AI assistant response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiCommandResponse"
 
   /backup:
     post:
@@ -766,6 +980,61 @@ components:
         - catatan
         - kategori
 
+    CashIn:
+      type: object
+      properties:
+        id:
+          type: integer
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah_kas_masuk:
+          type: number
+      required:
+        - id
+        - nomor
+        - tanggal
+        - keterangan
+        - jumlah_kas_masuk
+
+    CashInInput:
+      type: object
+      properties:
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah_kas_masuk:
+          type: number
+      required:
+        - nomor
+        - tanggal
+        - jumlah_kas_masuk
+
+    CashInResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CashIn"
+        total_kas_masuk:
+          type: number
+        total_pengeluaran:
+          type: number
+        sisa_kas:
+          type: number
+      required:
+        - items
+        - total_kas_masuk
+        - total_pengeluaran
+        - sisa_kas
+
     DashboardSummary:
       type: object
       properties:
@@ -781,6 +1050,10 @@ components:
           type: integer
         this_month_plans:
           type: integer
+        total_kas_masuk:
+          type: number
+        sisa_kas:
+          type: number
       required:
         - total_purchases
         - total_purchase_plans
@@ -788,6 +1061,8 @@ components:
         - total_planned
         - this_month_purchases
         - this_month_plans
+        - total_kas_masuk
+        - sisa_kas
 
     RecentActivity:
       type: object
@@ -803,6 +1078,28 @@ components:
       required:
         - recent_purchases
         - recent_plans
+
+    AiCommandRequest:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    AiCommandResponse:
+      type: object
+      properties:
+        reply:
+          type: string
+        action_taken:
+          type: boolean
+        action_summary:
+          type: string
+          nullable: true
+      required:
+        - reply
+        - action_taken
 
     BackupResponse:
       type: object

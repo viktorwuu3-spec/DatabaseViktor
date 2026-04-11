@@ -78,6 +78,28 @@ export interface PurchasePlanInput {
   supplier_contact?: string | null;
 }
 
+export interface CashIn {
+  id: number;
+  nomor: string;
+  tanggal: string;
+  keterangan: string;
+  jumlah_kas_masuk: number;
+}
+
+export interface CashInInput {
+  nomor: string;
+  tanggal: string;
+  keterangan?: string;
+  jumlah_kas_masuk: number;
+}
+
+export interface CashInResponse {
+  items: CashIn[];
+  total_kas_masuk: number;
+  total_pengeluaran: number;
+  sisa_kas: number;
+}
+
 export interface DashboardSummary {
   total_purchases: number;
   total_purchase_plans: number;
@@ -85,11 +107,23 @@ export interface DashboardSummary {
   total_planned: number;
   this_month_purchases: number;
   this_month_plans: number;
+  total_kas_masuk: number;
+  sisa_kas: number;
 }
 
 export interface RecentActivity {
   recent_purchases: Purchase[];
   recent_plans: PurchasePlan[];
+}
+
+export interface AiCommandRequest {
+  message: string;
+}
+
+export interface AiCommandResponse {
+  reply: string;
+  action_taken: boolean;
+  action_summary?: string | null;
 }
 
 export interface BackupResponse {
@@ -156,6 +190,32 @@ export type ExportPurchasePlansPdfParams = {
   startDate?: string;
   endDate?: string;
   kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
+};
+
+export type GetCashInListParams = {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+};
+
+export type ExportCashInExcelParams = {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
+};
+
+export type ExportCashInPdfParams = {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
   /**
    * Comma-separated IDs for selective export
    */

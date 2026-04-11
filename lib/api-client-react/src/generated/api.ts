@@ -17,16 +17,24 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AiCommandRequest,
+  AiCommandResponse,
   BackupFile,
   BackupResponse,
   BulkDeleteRequest,
+  CashIn,
+  CashInInput,
+  CashInResponse,
   DashboardSummary,
   DeleteResponse,
   ErrorResponse,
+  ExportCashInExcelParams,
+  ExportCashInPdfParams,
   ExportPurchasePlansExcelParams,
   ExportPurchasePlansPdfParams,
   ExportPurchasesExcelParams,
   ExportPurchasesPdfParams,
+  GetCashInListParams,
   GetPurchasePlansParams,
   GetPurchasesParams,
   HealthStatus,
@@ -1577,6 +1585,634 @@ export function useExportPurchasePlansPdf<
 }
 
 /**
+ * @summary Get all cash in entries
+ */
+export const getGetCashInListUrl = (params?: GetCashInListParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/cash-in?${stringifiedParams}`
+    : `/api/cash-in`;
+};
+
+export const getCashInList = async (
+  params?: GetCashInListParams,
+  options?: RequestInit,
+): Promise<CashInResponse> => {
+  return customFetch<CashInResponse>(getGetCashInListUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCashInListQueryKey = (params?: GetCashInListParams) => {
+  return [`/api/cash-in`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCashInListQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCashInList>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetCashInListParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCashInList>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCashInListQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCashInList>>> = ({
+    signal,
+  }) => getCashInList(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCashInList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCashInListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCashInList>>
+>;
+export type GetCashInListQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all cash in entries
+ */
+
+export function useGetCashInList<
+  TData = Awaited<ReturnType<typeof getCashInList>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetCashInListParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCashInList>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCashInListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new cash in entry
+ */
+export const getCreateCashInUrl = () => {
+  return `/api/cash-in`;
+};
+
+export const createCashIn = async (
+  cashInInput: CashInInput,
+  options?: RequestInit,
+): Promise<CashIn> => {
+  return customFetch<CashIn>(getCreateCashInUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(cashInInput),
+  });
+};
+
+export const getCreateCashInMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCashIn>>,
+    TError,
+    { data: BodyType<CashInInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCashIn>>,
+  TError,
+  { data: BodyType<CashInInput> },
+  TContext
+> => {
+  const mutationKey = ["createCashIn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCashIn>>,
+    { data: BodyType<CashInInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCashIn(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCashInMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCashIn>>
+>;
+export type CreateCashInMutationBody = BodyType<CashInInput>;
+export type CreateCashInMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new cash in entry
+ */
+export const useCreateCashIn = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCashIn>>,
+    TError,
+    { data: BodyType<CashInInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCashIn>>,
+  TError,
+  { data: BodyType<CashInInput> },
+  TContext
+> => {
+  return useMutation(getCreateCashInMutationOptions(options));
+};
+
+/**
+ * @summary Update a cash in entry
+ */
+export const getUpdateCashInUrl = (id: number) => {
+  return `/api/cash-in/${id}`;
+};
+
+export const updateCashIn = async (
+  id: number,
+  cashInInput: CashInInput,
+  options?: RequestInit,
+): Promise<CashIn> => {
+  return customFetch<CashIn>(getUpdateCashInUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(cashInInput),
+  });
+};
+
+export const getUpdateCashInMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCashIn>>,
+    TError,
+    { id: number; data: BodyType<CashInInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCashIn>>,
+  TError,
+  { id: number; data: BodyType<CashInInput> },
+  TContext
+> => {
+  const mutationKey = ["updateCashIn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCashIn>>,
+    { id: number; data: BodyType<CashInInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCashIn(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCashInMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCashIn>>
+>;
+export type UpdateCashInMutationBody = BodyType<CashInInput>;
+export type UpdateCashInMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a cash in entry
+ */
+export const useUpdateCashIn = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCashIn>>,
+    TError,
+    { id: number; data: BodyType<CashInInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCashIn>>,
+  TError,
+  { id: number; data: BodyType<CashInInput> },
+  TContext
+> => {
+  return useMutation(getUpdateCashInMutationOptions(options));
+};
+
+/**
+ * @summary Delete a cash in entry
+ */
+export const getDeleteCashInUrl = (id: number) => {
+  return `/api/cash-in/${id}`;
+};
+
+export const deleteCashIn = async (
+  id: number,
+  options?: RequestInit,
+): Promise<DeleteResponse> => {
+  return customFetch<DeleteResponse>(getDeleteCashInUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCashInMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCashIn>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCashIn>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCashIn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCashIn>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCashIn(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCashInMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCashIn>>
+>;
+
+export type DeleteCashInMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a cash in entry
+ */
+export const useDeleteCashIn = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCashIn>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCashIn>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteCashInMutationOptions(options));
+};
+
+/**
+ * @summary Delete multiple cash in entries by IDs
+ */
+export const getBulkDeleteCashInUrl = () => {
+  return `/api/cash-in/bulk-delete`;
+};
+
+export const bulkDeleteCashIn = async (
+  bulkDeleteRequest: BulkDeleteRequest,
+  options?: RequestInit,
+): Promise<DeleteResponse> => {
+  return customFetch<DeleteResponse>(getBulkDeleteCashInUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bulkDeleteRequest),
+  });
+};
+
+export const getBulkDeleteCashInMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeleteCashIn>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bulkDeleteCashIn>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  const mutationKey = ["bulkDeleteCashIn"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bulkDeleteCashIn>>,
+    { data: BodyType<BulkDeleteRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return bulkDeleteCashIn(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BulkDeleteCashInMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bulkDeleteCashIn>>
+>;
+export type BulkDeleteCashInMutationBody = BodyType<BulkDeleteRequest>;
+export type BulkDeleteCashInMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete multiple cash in entries by IDs
+ */
+export const useBulkDeleteCashIn = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeleteCashIn>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof bulkDeleteCashIn>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  return useMutation(getBulkDeleteCashInMutationOptions(options));
+};
+
+/**
+ * @summary Export cash in as Excel file
+ */
+export const getExportCashInExcelUrl = (params?: ExportCashInExcelParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/cash-in/export/excel?${stringifiedParams}`
+    : `/api/cash-in/export/excel`;
+};
+
+export const exportCashInExcel = async (
+  params?: ExportCashInExcelParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportCashInExcelUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportCashInExcelQueryKey = (
+  params?: ExportCashInExcelParams,
+) => {
+  return [`/api/cash-in/export/excel`, ...(params ? [params] : [])] as const;
+};
+
+export const getExportCashInExcelQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportCashInExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportCashInExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportCashInExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getExportCashInExcelQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof exportCashInExcel>>
+  > = ({ signal }) => exportCashInExcel(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportCashInExcel>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportCashInExcelQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportCashInExcel>>
+>;
+export type ExportCashInExcelQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export cash in as Excel file
+ */
+
+export function useExportCashInExcel<
+  TData = Awaited<ReturnType<typeof exportCashInExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportCashInExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportCashInExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportCashInExcelQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Export cash in as PDF file
+ */
+export const getExportCashInPdfUrl = (params?: ExportCashInPdfParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/cash-in/export/pdf?${stringifiedParams}`
+    : `/api/cash-in/export/pdf`;
+};
+
+export const exportCashInPdf = async (
+  params?: ExportCashInPdfParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportCashInPdfUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportCashInPdfQueryKey = (params?: ExportCashInPdfParams) => {
+  return [`/api/cash-in/export/pdf`, ...(params ? [params] : [])] as const;
+};
+
+export const getExportCashInPdfQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportCashInPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportCashInPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportCashInPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getExportCashInPdfQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof exportCashInPdf>>> = ({
+    signal,
+  }) => exportCashInPdf(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportCashInPdf>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportCashInPdfQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportCashInPdf>>
+>;
+export type ExportCashInPdfQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export cash in as PDF file
+ */
+
+export function useExportCashInPdf<
+  TData = Awaited<ReturnType<typeof exportCashInPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportCashInPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportCashInPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportCashInPdfQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Get dashboard summary statistics
  */
 export const getGetDashboardSummaryUrl = () => {
@@ -1725,6 +2361,92 @@ export function useGetRecentActivity<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Send a natural language command to AI assistant
+ */
+export const getSendAiCommandUrl = () => {
+  return `/api/ai-command`;
+};
+
+export const sendAiCommand = async (
+  aiCommandRequest: AiCommandRequest,
+  options?: RequestInit,
+): Promise<AiCommandResponse> => {
+  return customFetch<AiCommandResponse>(getSendAiCommandUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(aiCommandRequest),
+  });
+};
+
+export const getSendAiCommandMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendAiCommand>>,
+    TError,
+    { data: BodyType<AiCommandRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof sendAiCommand>>,
+  TError,
+  { data: BodyType<AiCommandRequest> },
+  TContext
+> => {
+  const mutationKey = ["sendAiCommand"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof sendAiCommand>>,
+    { data: BodyType<AiCommandRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return sendAiCommand(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SendAiCommandMutationResult = NonNullable<
+  Awaited<ReturnType<typeof sendAiCommand>>
+>;
+export type SendAiCommandMutationBody = BodyType<AiCommandRequest>;
+export type SendAiCommandMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a natural language command to AI assistant
+ */
+export const useSendAiCommand = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof sendAiCommand>>,
+    TError,
+    { data: BodyType<AiCommandRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof sendAiCommand>>,
+  TError,
+  { data: BodyType<AiCommandRequest> },
+  TContext
+> => {
+  return useMutation(getSendAiCommandMutationOptions(options));
+};
 
 /**
  * @summary Trigger manual database backup

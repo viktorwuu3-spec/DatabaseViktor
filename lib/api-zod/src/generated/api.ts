@@ -318,6 +318,112 @@ export const ExportPurchasePlansPdfQueryParams = zod.object({
 });
 
 /**
+ * @summary Get all cash in entries
+ */
+export const GetCashInListQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+});
+
+export const GetCashInListResponse = zod.object({
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      nomor: zod.string(),
+      tanggal: zod.string(),
+      keterangan: zod.string(),
+      jumlah_kas_masuk: zod.number(),
+    }),
+  ),
+  total_kas_masuk: zod.number(),
+  total_pengeluaran: zod.number(),
+  sisa_kas: zod.number(),
+});
+
+/**
+ * @summary Create a new cash in entry
+ */
+export const CreateCashInBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string().optional(),
+  jumlah_kas_masuk: zod.number(),
+});
+
+/**
+ * @summary Update a cash in entry
+ */
+export const UpdateCashInParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCashInBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string().optional(),
+  jumlah_kas_masuk: zod.number(),
+});
+
+export const UpdateCashInResponse = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah_kas_masuk: zod.number(),
+});
+
+/**
+ * @summary Delete a cash in entry
+ */
+export const DeleteCashInParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteCashInResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete multiple cash in entries by IDs
+ */
+export const BulkDeleteCashInBody = zod.object({
+  ids: zod.array(zod.number()),
+});
+
+export const BulkDeleteCashInResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Export cash in as Excel file
+ */
+export const ExportCashInExcelQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
+});
+
+/**
+ * @summary Export cash in as PDF file
+ */
+export const ExportCashInPdfQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
+});
+
+/**
  * @summary Get dashboard summary statistics
  */
 export const GetDashboardSummaryResponse = zod.object({
@@ -327,6 +433,8 @@ export const GetDashboardSummaryResponse = zod.object({
   total_planned: zod.number(),
   this_month_purchases: zod.number(),
   this_month_plans: zod.number(),
+  total_kas_masuk: zod.number(),
+  sisa_kas: zod.number(),
 });
 
 /**
@@ -365,6 +473,19 @@ export const GetRecentActivityResponse = zod.object({
       supplier_contact: zod.string().nullish(),
     }),
   ),
+});
+
+/**
+ * @summary Send a natural language command to AI assistant
+ */
+export const SendAiCommandBody = zod.object({
+  message: zod.string(),
+});
+
+export const SendAiCommandResponse = zod.object({
+  reply: zod.string(),
+  action_taken: zod.boolean(),
+  action_summary: zod.string().nullish(),
 });
 
 /**

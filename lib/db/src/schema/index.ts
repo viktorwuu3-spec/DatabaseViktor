@@ -23,6 +23,20 @@ export const insertPurchaseSchema = createInsertSchema(purchasesTable).omit({
 export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
 export type Purchase = typeof purchasesTable.$inferSelect;
 
+export const cashInTable = pgTable("cash_in", {
+  id: serial("id").primaryKey(),
+  nomor: text("nomor").notNull(),
+  tanggal: text("tanggal").notNull(),
+  keterangan: text("keterangan").notNull().default(""),
+  jumlah_kas_masuk: real("jumlah_kas_masuk").notNull(),
+});
+
+export const insertCashInSchema = createInsertSchema(cashInTable).omit({
+  id: true,
+});
+export type InsertCashIn = z.infer<typeof insertCashInSchema>;
+export type CashIn = typeof cashInTable.$inferSelect;
+
 export const purchasePlansTable = pgTable("purchase_plans", {
   id: serial("id").primaryKey(),
   nomor: text("nomor").notNull(),

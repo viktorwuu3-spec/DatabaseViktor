@@ -1,0 +1,304 @@
+Enhance the existing web application by adding a Cash In (Kas Masuk) feature, AI Assistant, and a complete backup system. Ensure the implementation is robust, bug-resistant, and follows best practices.
+
+==================================================
+
+1. CASH IN (KAS MASUK) FEATURE
+   ==================================================
+
+Create new table:
+
+cash_in
+
+Fields:
+
+* id (INTEGER PRIMARY KEY AUTOINCREMENT)
+* nomor (TEXT, required)
+* tanggal (TEXT, required, format YYYY-MM-DD)
+* keterangan (TEXT)
+* jumlah_kas_masuk (REAL, required)
+
+DO NOT store:
+
+* total_kas_masuk (calculate dynamically)
+* sisa_kas (calculate dynamically)
+
+==================================================
+2. CASH CALCULATION LOGIC (VERY IMPORTANT)
+==========================================
+
+Use dynamic calculation ONLY:
+
+* total_kas_masuk = SUM(cash_in.jumlah_kas_masuk)
+* total_pengeluaran = SUM(purchases.harga_total)
+* sisa_kas = total_kas_masuk - total_pengeluaran
+
+RULES:
+
+* NEVER rely on stored totals
+* ALWAYS calculate when fetching data
+* Ensure consistency across all endpoints
+
+==================================================
+3. BACKEND IMPLEMENTATION (KAS MASUK)
+=====================================
+
+Create:
+
+* /models/cashInModel.js
+* /controllers/cashInController.js
+* /routes/cashInRoutes.js
+
+API endpoints:
+
+* GET /cash-in
+* POST /cash-in
+* PUT /cash-in/:id
+* DELETE /cash-in/:id
+
+==================================================
+4. FRONTEND (KAS MASUK)
+=======================
+
+Create page:
+/public/kas.html
+
+Features:
+
+* Form input:
+  nomor
+  tanggal
+  keterangan
+  jumlah_kas_masuk
+
+* Table display:
+  nomor
+  tanggal
+  keterangan
+  jumlah_kas_masuk
+  total_kas_masuk (calculated)
+  sisa_kas (calculated)
+
+==================================================
+5. VALIDATION (KAS MASUK)
+=========================
+
+* nomor → required
+* tanggal → valid date
+* jumlah_kas_masuk → must be positive number
+
+If invalid:
+
+* reject request
+* show error message
+
+==================================================
+6. PREVENT NEGATIVE CASH
+========================
+
+If:
+sisa_kas < 0
+
+Then:
+
+* show warning
+* optionally block transaction
+
+==================================================
+7. AI ASSISTANT FEATURE
+=======================
+
+Create endpoint:
+POST /ai-command
+
+FLOW:
+
+1. User sends text input
+2. Send to AI API (OpenAI or similar)
+3. Convert into structured JSON:
+
+Example:
+{
+"action": "create",
+"table": "cash_in",
+"data": {
+"nomor": "001",
+"tanggal": "2026-04-11",
+"keterangan": "Modal awal",
+"jumlah_kas_masuk": 1000000
+}
+}
+
+SUPPORTED ACTIONS:
+
+* create
+* update
+* delete
+* read
+
+==================================================
+8. AI SAFETY RULES (VERY IMPORTANT)
+===================================
+
+* NEVER execute raw AI output directly
+* ALWAYS validate JSON structure
+* Validate all fields before execution
+* Reject unclear or incomplete AI responses
+* Optional: ask user confirmation before executing
+
+==================================================
+9. FRONTEND AI UI
+=================
+
+Create:
+/public/ai.html
+
+Features:
+
+* Chat input box
+* Send button
+* Display conversation
+
+Example:
+User: "Tambah kas masuk 1 juta hari ini"
+AI: "Data berhasil ditambahkan"
+
+==================================================
+10. AUTOMATIC BACKUP SYSTEM
+===========================
+
+Create:
+/utils/backup.js
+
+A. Folder:
+
+* /backups (auto create if not exists)
+
+B. Auto backup:
+
+* Use node-cron
+* Run daily at 00:00
+
+C. Process:
+
+* Copy SQLite database file
+* Use fs.copyFile
+
+D. File name format:
+backup-YYYY-MM-DD-HH-mm.db
+
+==================================================
+11. BACKUP LIMIT
+================
+
+* Keep only last 7 backups
+* Automatically delete older files
+
+==================================================
+12. MANUAL BACKUP
+=================
+
+API:
+POST /backup
+
+Function:
+
+* Trigger backup instantly
+
+Frontend:
+
+* Button: "Backup Sekarang"
+
+==================================================
+13. DOWNLOAD BACKUP
+===================
+
+API:
+GET /backup/download/:filename
+
+Features:
+
+* List backup files
+* Download selected file
+
+SECURITY:
+
+* Validate filename
+* Restrict to /backups folder only
+
+==================================================
+14. ERROR HANDLING
+==================
+
+Implement global error handler
+
+Response format:
+
+Success:
+{
+success: true,
+data: ...
+}
+
+Error:
+{
+success: false,
+message: "Error message"
+}
+
+==================================================
+15. VALIDATION & BEST PRACTICE
+==============================
+
+* Validate all inputs (backend & frontend)
+* Prevent empty or invalid data
+* Check ID exists before update/delete
+* Prevent invalid selected IDs
+* Sanitize all query params
+
+==================================================
+16. CODE STRUCTURE
+==================
+
+* models → database queries
+* controllers → logic
+* routes → endpoints
+* utils → reusable logic
+
+==================================================
+17. LOGGING
+===========
+
+Log:
+
+* API calls
+* Errors
+* Backup success/failure
+* AI commands
+
+==================================================
+18. TEST SCENARIOS
+==================
+
+Ensure:
+
+* Cash input works
+* Calculation correct
+* AI commands work
+* Backup auto runs
+* Manual backup works
+* Download works
+* No crashes
+
+==================================================
+IMPORTANT RULES
+===============
+
+* Do NOT break existing features
+* Keep system stable
+* Avoid duplicate logic
+* Ensure data consistency
+* Ensure application is production-ready
+
+==================================================
+
+Implement all features cleanly, safely, and without introducing bugs.

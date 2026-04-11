@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { purchasesTable, purchasePlansTable } from "@workspace/db";
+import { purchasesTable, purchasePlansTable, cashInTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
 
 const router: IRouter = Router();
@@ -33,13 +33,25 @@ router.get("/dashboard/summary", async (req, res) => {
       .from(purchasePlansTable)
       .where(sql`tanggal LIKE ${currentMonth + "%"}`);
 
+    const [kasStats] = await db
+      .select({
+        total: sql<number>`COALESCE(SUM(jumlah_kas_masuk), 0)::float`,
+      })
+      .from(cashInTable);
+
+    const total_kas_masuk = kasStats?.total ?? 0;
+    const total_spend = purchaseStats?.total_spend ?? 0;
+    const sisa_kas = total_kas_masuk - total_spend;
+
     res.json({
       total_purchases: purchaseStats?.total ?? 0,
       total_purchase_plans: planStats?.total ?? 0,
-      total_spend: purchaseStats?.total_spend ?? 0,
+      total_spend,
       total_planned: planStats?.total_planned ?? 0,
       this_month_purchases: thisMonthPurchases?.count ?? 0,
       this_month_plans: thisMonthPlans?.count ?? 0,
+      total_kas_masuk,
+      sisa_kas,
     });
   } catch (err) {
     req.log.error({ err }, "Failed to get dashboard summary");
