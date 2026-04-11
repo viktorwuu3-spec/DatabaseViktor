@@ -126,6 +126,14 @@ export default function PurchasePlans() {
   const totalHarga =
     plans?.reduce((sum, p) => sum + Number(p.harga_total), 0) || 0;
 
+  const buildExportUrl = (base: string) => {
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (tanggal) params.set("tanggal", tanggal);
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -156,7 +164,7 @@ export default function PurchasePlans() {
               data-testid="btn-export-excel"
             >
               <a
-                href="/api/purchase-plans/export/excel"
+                href={buildExportUrl("/api/purchase-plans/export/excel")}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -166,7 +174,7 @@ export default function PurchasePlans() {
             </Button>
             <Button variant="outline" asChild data-testid="btn-export-pdf">
               <a
-                href="/api/purchase-plans/export/pdf"
+                href={buildExportUrl("/api/purchase-plans/export/pdf")}
                 target="_blank"
                 rel="noopener noreferrer"
               >
