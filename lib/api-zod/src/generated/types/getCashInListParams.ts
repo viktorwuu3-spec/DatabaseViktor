@@ -10,4 +10,5 @@ export type GetCashInListParams = {
   search?: string;
   startDate?: string;
   endDate?: string;
+  kategori?: string;
 };

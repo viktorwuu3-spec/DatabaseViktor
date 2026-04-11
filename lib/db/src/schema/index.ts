@@ -29,6 +29,7 @@ export const cashInTable = pgTable("cash_in", {
   tanggal: text("tanggal").notNull(),
   keterangan: text("keterangan").notNull().default(""),
   jumlah_kas_masuk: real("jumlah_kas_masuk").notNull(),
+  kategori: text("kategori").notNull().default(""),
 });
 
 export const insertCashInSchema = createInsertSchema(cashInTable).omit({

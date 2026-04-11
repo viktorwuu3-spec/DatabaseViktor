@@ -12,4 +12,5 @@ export interface CashIn {
   tanggal: string;
   keterangan: string;
   jumlah_kas_masuk: number;
+  kategori: string;
 }

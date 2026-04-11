@@ -528,6 +528,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: List of cash in entries with calculated totals
@@ -647,6 +652,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
         - name: ids
           in: query
           required: false
@@ -679,6 +689,11 @@ paths:
           schema:
             type: string
         - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
           in: query
           required: false
           schema:
@@ -1421,12 +1436,15 @@ components:
           type: string
         jumlah_kas_masuk:
           type: number
+        kategori:
+          type: string
       required:
         - id
         - nomor
         - tanggal
         - keterangan
         - jumlah_kas_masuk
+        - kategori
 
     CashInInput:
       type: object
@@ -1439,6 +1457,8 @@ components:
           type: string
         jumlah_kas_masuk:
           type: number
+        kategori:
+          type: string
       required:
         - nomor
         - tanggal
@@ -1451,6 +1471,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CashIn"
+        kategori_list:
+          type: array
+          items:
+            type: string
         total_kas_masuk:
           type: number
         total_pengeluaran:
@@ -1459,6 +1483,7 @@ components:
           type: number
       required:
         - items
+        - kategori_list
         - total_kas_masuk
         - total_pengeluaran
         - sisa_kas

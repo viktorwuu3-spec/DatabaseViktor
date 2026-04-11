@@ -324,6 +324,7 @@ export const GetCashInListQueryParams = zod.object({
   search: zod.coerce.string().optional(),
   startDate: zod.coerce.string().optional(),
   endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
 });
 
 export const GetCashInListResponse = zod.object({
@@ -334,8 +335,10 @@ export const GetCashInListResponse = zod.object({
       tanggal: zod.string(),
       keterangan: zod.string(),
       jumlah_kas_masuk: zod.number(),
+      kategori: zod.string(),
     }),
   ),
+  kategori_list: zod.array(zod.string()),
   total_kas_masuk: zod.number(),
   total_pengeluaran: zod.number(),
   sisa_kas: zod.number(),
@@ -349,6 +352,7 @@ export const CreateCashInBody = zod.object({
   tanggal: zod.string(),
   keterangan: zod.string().optional(),
   jumlah_kas_masuk: zod.number(),
+  kategori: zod.string().optional(),
 });
 
 /**
@@ -363,6 +367,7 @@ export const UpdateCashInBody = zod.object({
   tanggal: zod.string(),
   keterangan: zod.string().optional(),
   jumlah_kas_masuk: zod.number(),
+  kategori: zod.string().optional(),
 });
 
 export const UpdateCashInResponse = zod.object({
@@ -371,6 +376,7 @@ export const UpdateCashInResponse = zod.object({
   tanggal: zod.string(),
   keterangan: zod.string(),
   jumlah_kas_masuk: zod.number(),
+  kategori: zod.string(),
 });
 
 /**
@@ -404,6 +410,7 @@ export const ExportCashInExcelQueryParams = zod.object({
   search: zod.coerce.string().optional(),
   startDate: zod.coerce.string().optional(),
   endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
   ids: zod.coerce
     .string()
     .optional()
@@ -417,6 +424,7 @@ export const ExportCashInPdfQueryParams = zod.object({
   search: zod.coerce.string().optional(),
   startDate: zod.coerce.string().optional(),
   endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
   ids: zod.coerce
     .string()
     .optional()

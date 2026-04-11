@@ -84,6 +84,7 @@ export interface CashIn {
   tanggal: string;
   keterangan: string;
   jumlah_kas_masuk: number;
+  kategori: string;
 }
 
 export interface CashInInput {
@@ -91,10 +92,12 @@ export interface CashInInput {
   tanggal: string;
   keterangan?: string;
   jumlah_kas_masuk: number;
+  kategori?: string;
 }
 
 export interface CashInResponse {
   items: CashIn[];
+  kategori_list: string[];
   total_kas_masuk: number;
   total_pengeluaran: number;
   sisa_kas: number;
@@ -277,12 +280,14 @@ export type GetCashInListParams = {
   search?: string;
   startDate?: string;
   endDate?: string;
+  kategori?: string;
 };
 
 export type ExportCashInExcelParams = {
   search?: string;
   startDate?: string;
   endDate?: string;
+  kategori?: string;
   /**
    * Comma-separated IDs for selective export
    */
@@ -293,6 +298,7 @@ export type ExportCashInPdfParams = {
   search?: string;
   startDate?: string;
   endDate?: string;
+  kategori?: string;
   /**
    * Comma-separated IDs for selective export
    */

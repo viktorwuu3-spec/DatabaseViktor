@@ -9,6 +9,7 @@ import type { CashIn } from "./cashIn";
 
 export interface CashInResponse {
   items: CashIn[];
+  kategori_list: string[];
   total_kas_masuk: number;
   total_pengeluaran: number;
   sisa_kas: number;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import {
   Table,
   TableBody,
@@ -76,6 +77,7 @@ const formSchema = z.object({
   tanggal: z.string().min(1, "Tanggal wajib diisi"),
   keterangan: z.string().optional(),
   jumlah_kas_masuk: z.coerce.number().min(1, "Jumlah harus lebih dari 0"),
+  kategori: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -85,12 +87,14 @@ const EMPTY_DEFAULTS: FormValues = {
   tanggal: new Date().toISOString().split("T")[0],
   keterangan: "",
   jumlah_kas_masuk: 0,
+  kategori: "",
 };
 
 export default function KasMasuk() {
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [filterKategori, setFilterKategori] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CashIn | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -100,10 +104,11 @@ export default function KasMasuk() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const queryParams: { search?: string; startDate?: string; endDate?: string } = {};
+  const queryParams: { search?: string; startDate?: string; endDate?: string; kategori?: string } = {};
   if (search) queryParams.search = search;
   if (startDate) queryParams.startDate = startDate;
   if (endDate) queryParams.endDate = endDate;
+  if (filterKategori) queryParams.kategori = filterKategori;
 
   const { data: cashInData, isLoading } = useGetCashInList(queryParams);
 
@@ -117,6 +122,39 @@ export default function KasMasuk() {
     defaultValues: EMPTY_DEFAULTS,
   });
 
+  const categories = useMemo(() => {
+    const serverCats = cashInData?.kategori_list ?? [];
+    const hasUncategorized = cashInData?.items?.some((item) => !item.kategori) ?? false;
+    if (serverCats.length > 0 && hasUncategorized && !serverCats.includes("Lain-Lain")) {
+      return [...serverCats, "Lain-Lain"];
+    }
+    return serverCats;
+  }, [cashInData?.kategori_list, cashInData?.items]);
+
+  const hasCategories = categories.length > 0;
+
+  const getItemDisplayKategori = (item: CashIn) => item.kategori || "Lain-Lain";
+
+  const categoryTotals = useMemo(() => {
+    if (!cashInData?.items || !hasCategories) return {};
+    const totals: Record<string, number> = {};
+    for (const cat of categories) {
+      totals[cat] = cashInData.items
+        .filter((item) => getItemDisplayKategori(item) === cat)
+        .reduce((sum, item) => sum + (item.jumlah_kas_masuk ?? 0), 0);
+    }
+    return totals;
+  }, [cashInData?.items, categories, hasCategories]);
+
+  const grandTotal = useMemo(() => {
+    return cashInData?.items?.reduce((sum, item) => sum + (item.jumlah_kas_masuk ?? 0), 0) ?? 0;
+  }, [cashInData?.items]);
+
+  const kategoriOptions = useMemo(
+    () => categories.map((k) => ({ value: k, label: k })),
+    [categories]
+  );
+
   useEffect(() => {
     if (isFormOpen) {
       if (editingItem) {
@@ -125,6 +163,7 @@ export default function KasMasuk() {
           tanggal: editingItem.tanggal,
           keterangan: editingItem.keterangan || "",
           jumlah_kas_masuk: editingItem.jumlah_kas_masuk,
+          kategori: editingItem.kategori || "",
         });
       } else {
         form.reset(EMPTY_DEFAULTS);
@@ -149,6 +188,7 @@ export default function KasMasuk() {
       tanggal: values.tanggal,
       keterangan: values.keterangan || "",
       jumlah_kas_masuk: values.jumlah_kas_masuk,
+      kategori: values.kategori || "",
     };
 
     if (editingItem) {
@@ -228,13 +268,14 @@ export default function KasMasuk() {
     if (search) params.set("search", search);
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
+    if (filterKategori) params.set("kategori", filterKategori);
     if (selectedIds.size > 0) params.set("ids", Array.from(selectedIds).join(","));
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;
   };
 
-  const clearFilters = () => { setSearch(""); setStartDate(""); setEndDate(""); };
-  const hasFilters = search || startDate || endDate;
+  const clearFilters = () => { setSearch(""); setStartDate(""); setEndDate(""); setFilterKategori(""); };
+  const hasFilters = search || startDate || endDate || filterKategori;
 
   const sisaKasNegative = (cashInData?.sisa_kas ?? 0) < 0;
 
@@ -320,6 +361,18 @@ export default function KasMasuk() {
                   <span className="text-muted-foreground text-sm">s/d</span>
                   <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-40" title="Sampai tanggal" />
                 </div>
+                {categories.length > 0 && (
+                  <select
+                    value={filterKategori}
+                    onChange={(e) => setFilterKategori(e.target.value)}
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Semua Kategori</option>
+                    {categories.map((k) => (
+                      <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
+                )}
                 {hasFilters && (
                   <Button variant="ghost" size="sm" onClick={clearFilters}><X className="w-4 h-4 mr-1" />Reset</Button>
                 )}
@@ -333,48 +386,50 @@ export default function KasMasuk() {
           </CardHeader>
           <CardContent className="print:p-0">
             <div className="print-only text-center mb-6">
-              <h2 className="print-title">LAPORAN KAS MASUK</h2>
+              <h2 className="print-title">PENGAMBILAN KAS TERBARU</h2>
               <p className="print-subtitle">
-                Total {cashInData?.items?.length ?? 0} transaksi &bull; Dicetak: {formatDate(new Date().toISOString())}
+                Per {formatDate(new Date().toISOString())} &bull; Total {cashInData?.items?.length ?? 0} transaksi
               </p>
-              {(search || startDate || endDate || selectedIds.size > 0) && (
+              {(search || startDate || endDate || filterKategori || selectedIds.size > 0) && (
                 <div className="mt-2 text-xs italic text-gray-600">
                   {startDate && endDate && <p>Periode: {formatDate(startDate)} s/d {formatDate(endDate)}</p>}
                   {startDate && !endDate && <p>Dari: {formatDate(startDate)}</p>}
                   {!startDate && endDate && <p>Sampai: {formatDate(endDate)}</p>}
+                  {filterKategori && <p>Kategori: {filterKategori}</p>}
                   {search && <p>Pencarian: &quot;{search}&quot;</p>}
                   {selectedIds.size > 0 && <p>Data terpilih: {selectedIds.size} item</p>}
                 </div>
               )}
-              {cashInData && (
-                <div className="text-left mt-4 mb-4 text-xs">
-                  <p>Total Kas Masuk: {formatCurrency(cashInData.total_kas_masuk)}</p>
-                  <p>Total Pengeluaran: {formatCurrency(cashInData.total_pengeluaran)}</p>
-                  <p className="font-bold">Sisa Kas: {formatCurrency(cashInData.sisa_kas)}</p>
-                </div>
-              )}
             </div>
 
-            <div className="rounded-md border print:border-0">
+            <div className="rounded-md border print:border-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead className="w-[40px] print-hide">
                       <input type="checkbox" checked={!!allSelected} onChange={toggleSelectAll} className="h-4 w-4 rounded border-gray-300" />
                     </TableHead>
-                    <TableHead className="print-only w-[45px] text-center print:w-[6%]">No.</TableHead>
-                    <TableHead className="print:w-[15%]">Nomor</TableHead>
-                    <TableHead className="print:w-[18%]">Tanggal</TableHead>
-                    <TableHead className="print:w-[36%]">Keterangan</TableHead>
-                    <TableHead className="text-right print:w-[25%]">Jumlah Kas Masuk</TableHead>
+                    <TableHead className="print-only w-[45px] text-center print:w-[5%]">No.</TableHead>
+                    <TableHead className="w-[80px]">Nomor</TableHead>
+                    <TableHead className="w-[110px]">Tanggal</TableHead>
+                    {hasCategories ? (
+                      categories.map((cat) => (
+                        <TableHead key={cat} className="text-right min-w-[130px]">{cat}</TableHead>
+                      ))
+                    ) : (
+                      <>
+                        <TableHead>Keterangan</TableHead>
+                        <TableHead className="text-right">Jumlah Kas Masuk</TableHead>
+                      </>
+                    )}
                     <TableHead className="w-[80px] text-center print-hide">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Memuat data...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={hasCategories ? 4 + categories.length + 1 : 7} className="text-center py-10 text-muted-foreground">Memuat data...</TableCell></TableRow>
                   ) : cashInData?.items?.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Tidak ada data ditemukan</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={hasCategories ? 4 + categories.length + 1 : 7} className="text-center py-10 text-muted-foreground">Tidak ada data ditemukan</TableCell></TableRow>
                   ) : (
                     cashInData?.items?.map((item, idx) => (
                       <TableRow key={item.id} className={selectedIds.has(item.id) ? "bg-primary/5" : ""}>
@@ -382,10 +437,20 @@ export default function KasMasuk() {
                           <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} className="h-4 w-4 rounded border-gray-300" />
                         </TableCell>
                         <TableCell className="print-only text-center">{idx + 1}</TableCell>
-                        <TableCell className="font-medium">{item.nomor}</TableCell>
-                        <TableCell>{formatDate(item.tanggal)}</TableCell>
-                        <TableCell>{item.keterangan || "-"}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(item.jumlah_kas_masuk)}</TableCell>
+                        <TableCell className="font-medium text-sm">{item.nomor}</TableCell>
+                        <TableCell className="text-sm">{formatDate(item.tanggal)}</TableCell>
+                        {hasCategories ? (
+                          categories.map((cat) => (
+                            <TableCell key={cat} className="text-right text-sm font-medium">
+                              {getItemDisplayKategori(item) === cat ? formatCurrency(item.jumlah_kas_masuk) : <span className="text-muted-foreground">-</span>}
+                            </TableCell>
+                          ))
+                        ) : (
+                          <>
+                            <TableCell className="text-sm">{item.keterangan || "-"}</TableCell>
+                            <TableCell className="text-right font-medium">{formatCurrency(item.jumlah_kas_masuk)}</TableCell>
+                          </>
+                        )}
                         <TableCell className="text-center print-hide">
                           <div className="flex justify-center gap-1">
                             <Button variant="ghost" size="icon" onClick={() => { setEditingItem(item); setIsFormOpen(true); }}>
@@ -403,7 +468,37 @@ export default function KasMasuk() {
               </Table>
             </div>
 
-            {cashInData?.items && cashInData.items.length > 0 && (
+            {cashInData?.items && cashInData.items.length > 0 && hasCategories && (
+              <div className="mt-2 rounded-md border overflow-x-auto print:border-0">
+                <Table>
+                  <TableBody>
+                    <TableRow className="bg-yellow-50 font-bold border-t-2 border-yellow-400">
+                      <TableCell className="w-[40px] print-hide"></TableCell>
+                      <TableCell className="print-only w-[45px]"></TableCell>
+                      <TableCell className="w-[80px] font-bold text-sm">Total</TableCell>
+                      <TableCell className="w-[110px]"></TableCell>
+                      {categories.map((cat) => (
+                        <TableCell key={cat} className="text-right font-bold text-sm min-w-[130px]">
+                          {formatCurrency(categoryTotals[cat] || 0)}
+                        </TableCell>
+                      ))}
+                      <TableCell className="w-[80px] print-hide"></TableCell>
+                    </TableRow>
+                    <TableRow className="bg-yellow-100 font-bold">
+                      <TableCell className="w-[40px] print-hide"></TableCell>
+                      <TableCell className="print-only w-[45px]"></TableCell>
+                      <TableCell colSpan={2} className="font-bold text-sm">Total Keseluruhan</TableCell>
+                      <TableCell colSpan={categories.length} className="text-right font-bold text-lg">
+                        {formatCurrency(grandTotal)}
+                      </TableCell>
+                      <TableCell className="w-[80px] print-hide"></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {cashInData?.items && cashInData.items.length > 0 && !hasCategories && (
               <div className="print-grand-total flex justify-end mt-2 border rounded-md overflow-hidden print:border-0 print:mt-1">
                 <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center print:bg-[#1e40af] print:text-white print:w-full print:justify-end print:text-[9pt] print:py-1.5 print:px-3 print:rounded-none">
                   <span>TOTAL KAS MASUK</span>
@@ -446,6 +541,22 @@ export default function KasMasuk() {
                   <FormItem><FormLabel>Tanggal</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
+              <FormField control={form.control} name="kategori" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kategori</FormLabel>
+                  <FormControl>
+                    <SearchableCombobox
+                      value={field.value || ""}
+                      onChange={(val) => field.onChange(val)}
+                      options={kategoriOptions}
+                      placeholder="Pilih atau ketik kategori..."
+                      allowCustom={true}
+                      addNewLabel="Tambah kategori baru"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
               <FormField control={form.control} name="keterangan" render={({ field }) => (
                 <FormItem><FormLabel>Keterangan (Opsional)</FormLabel><FormControl><Input {...field} placeholder="Keterangan kas masuk" /></FormControl><FormMessage /></FormItem>
               )} />

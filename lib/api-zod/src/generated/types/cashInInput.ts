@@ -11,4 +11,5 @@ export interface CashInInput {
   tanggal: string;
   keterangan?: string;
   jumlah_kas_masuk: number;
+  kategori?: string;
 }
