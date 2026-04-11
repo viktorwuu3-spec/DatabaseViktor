@@ -8,5 +8,11 @@
 
 export type ExportPurchasePlansPdfParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
 };

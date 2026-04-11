@@ -63,6 +63,7 @@ async function buildAll() {
       "pdfkit",
       "fontkit",
       "xlsx",
+      "node-cron",
       "@aws-sdk/*",
       "@azure/*",
       "@opentelemetry/*",

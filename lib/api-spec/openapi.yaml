@@ -16,6 +16,8 @@ tags:
     description: Purchase plan operations
   - name: dashboard
     description: Dashboard and summary operations
+  - name: backup
+    description: Database backup operations
 paths:
   /healthz:
     get:
@@ -42,7 +44,17 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
           in: query
           required: false
           schema:
@@ -151,6 +163,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /purchases/bulk-delete:
+    post:
+      operationId: bulkDeletePurchases
+      tags: [purchases]
+      summary: Delete multiple purchases by IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteRequest"
+      responses:
+        "200":
+          description: Bulk delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
   /purchases/export/excel:
     get:
       operationId: exportPurchasesExcel
@@ -162,11 +193,27 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
           in: query
           required: false
           schema:
             type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
       responses:
         "200":
           description: Excel file download
@@ -187,11 +234,27 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
           in: query
           required: false
           schema:
             type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
       responses:
         "200":
           description: PDF file download
@@ -212,7 +275,17 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
           in: query
           required: false
           schema:
@@ -321,6 +394,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /purchase-plans/bulk-delete:
+    post:
+      operationId: bulkDeletePurchasePlans
+      tags: [purchase-plans]
+      summary: Delete multiple purchase plans by IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkDeleteRequest"
+      responses:
+        "200":
+          description: Bulk delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
   /purchase-plans/export/excel:
     get:
       operationId: exportPurchasePlansExcel
@@ -332,11 +424,27 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
           in: query
           required: false
           schema:
             type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
       responses:
         "200":
           description: Excel file download
@@ -357,11 +465,27 @@ paths:
           required: false
           schema:
             type: string
-        - name: tanggal
+        - name: startDate
           in: query
           required: false
           schema:
             type: string
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: kategori
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: ids
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated IDs for selective export
       responses:
         "200":
           description: PDF file download
@@ -397,6 +521,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecentActivity"
 
+  /backup:
+    post:
+      operationId: createBackup
+      tags: [backup]
+      summary: Trigger manual database backup
+      responses:
+        "200":
+          description: Backup created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackupResponse"
+
+  /backups:
+    get:
+      operationId: listBackups
+      tags: [backup]
+      summary: List all available backups
+      responses:
+        "200":
+          description: List of backups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BackupFile"
+
+  /backup/download/{filename}:
+    get:
+      operationId: downloadBackup
+      tags: [backup]
+      summary: Download a backup file
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Backup file download
+          content:
+            application/sql:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -426,6 +604,16 @@ components:
         - success
         - message
 
+    BulkDeleteRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+      required:
+        - ids
+
     Purchase:
       type: object
       properties:
@@ -447,6 +635,14 @@ components:
           type: number
         catatan:
           type: string
+        kategori:
+          type: string
+        supplier:
+          type: string
+          nullable: true
+        supplier_contact:
+          type: string
+          nullable: true
       required:
         - id
         - nomor
@@ -457,6 +653,7 @@ components:
         - harga_satuan
         - harga_total
         - catatan
+        - kategori
 
     PurchaseInput:
       type: object
@@ -475,6 +672,14 @@ components:
           type: number
         catatan:
           type: string
+        kategori:
+          type: string
+        supplier:
+          type: string
+          nullable: true
+        supplier_contact:
+          type: string
+          nullable: true
       required:
         - nomor
         - tanggal
@@ -483,6 +688,7 @@ components:
         - satuan
         - harga_satuan
         - catatan
+        - kategori
 
     PurchasePlan:
       type: object
@@ -505,6 +711,14 @@ components:
           type: number
         catatan:
           type: string
+        kategori:
+          type: string
+        supplier:
+          type: string
+          nullable: true
+        supplier_contact:
+          type: string
+          nullable: true
       required:
         - id
         - nomor
@@ -515,6 +729,7 @@ components:
         - harga_satuan
         - harga_total
         - catatan
+        - kategori
 
     PurchasePlanInput:
       type: object
@@ -533,6 +748,14 @@ components:
           type: number
         catatan:
           type: string
+        kategori:
+          type: string
+        supplier:
+          type: string
+          nullable: true
+        supplier_contact:
+          type: string
+          nullable: true
       required:
         - nomor
         - tanggal
@@ -541,6 +764,7 @@ components:
         - satuan
         - harga_satuan
         - catatan
+        - kategori
 
     DashboardSummary:
       type: object
@@ -579,3 +803,31 @@ components:
       required:
         - recent_purchases
         - recent_plans
+
+    BackupResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        filename:
+          type: string
+        message:
+          type: string
+      required:
+        - success
+        - filename
+        - message
+
+    BackupFile:
+      type: object
+      properties:
+        filename:
+          type: string
+        size:
+          type: integer
+        created:
+          type: string
+      required:
+        - filename
+        - size
+        - created

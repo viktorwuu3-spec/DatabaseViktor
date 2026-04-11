@@ -12,6 +12,9 @@ export const purchasesTable = pgTable("purchases", {
   harga_satuan: real("harga_satuan").notNull(),
   harga_total: real("harga_total").notNull(),
   catatan: text("catatan").notNull().default(""),
+  kategori: text("kategori").notNull().default(""),
+  supplier: text("supplier"),
+  supplier_contact: text("supplier_contact"),
 });
 
 export const insertPurchaseSchema = createInsertSchema(purchasesTable).omit({
@@ -30,6 +33,9 @@ export const purchasePlansTable = pgTable("purchase_plans", {
   harga_satuan: real("harga_satuan").notNull(),
   harga_total: real("harga_total").notNull(),
   catatan: text("catatan").notNull().default(""),
+  kategori: text("kategori").notNull().default(""),
+  supplier: text("supplier"),
+  supplier_contact: text("supplier_contact"),
 });
 
 export const insertPurchasePlanSchema = createInsertSchema(

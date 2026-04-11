@@ -6,6 +6,7 @@ import {
   useCreatePurchase,
   useUpdatePurchase,
   useDeletePurchase,
+  useBulkDeletePurchases,
   getGetDashboardSummaryQueryKey,
   getGetRecentActivityQueryKey,
 } from "@workspace/api-client-react";
@@ -33,8 +34,9 @@ import {
   Trash2,
   CalendarDays,
   X,
+  CheckSquare,
 } from "lucide-react";
-import { PurchaseForm } from "@/components/purchase-form";
+import { PurchaseForm, KATEGORI_OPTIONS } from "@/components/purchase-form";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -49,28 +51,44 @@ import {
 
 export default function Purchases() {
   const [search, setSearch] = useState("");
-  const [tanggal, setTanggal] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [kategori, setKategori] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Purchase | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const queryParams: { search?: string; tanggal?: string } = {};
+  const queryParams: {
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    kategori?: string;
+  } = {};
   if (search) queryParams.search = search;
-  if (tanggal) queryParams.tanggal = tanggal;
+  if (startDate) queryParams.startDate = startDate;
+  if (endDate) queryParams.endDate = endDate;
+  if (kategori) queryParams.kategori = kategori;
 
   const { data: purchases, isLoading } = useGetPurchases(queryParams);
 
   const createMutation = useCreatePurchase();
   const updateMutation = useUpdatePurchase();
   const deleteMutation = useDeletePurchase();
+  const bulkDeleteMutation = useBulkDeletePurchases();
 
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: getGetPurchasesQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-    queryClient.invalidateQueries({ queryKey: getGetRecentActivityQueryKey() });
+    queryClient.invalidateQueries({
+      queryKey: getGetDashboardSummaryQueryKey(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getGetRecentActivityQueryKey(),
+    });
   };
 
   const handleCreate = (data: PurchaseInput) => {
@@ -112,6 +130,11 @@ export default function Purchases() {
       {
         onSuccess: () => {
           setDeletingId(null);
+          setSelectedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(deletingId);
+            return next;
+          });
           invalidateQueries();
           toast({ title: "Berhasil dihapus" });
         },
@@ -121,6 +144,44 @@ export default function Purchases() {
     );
   };
 
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    bulkDeleteMutation.mutate(
+      { data: { ids: Array.from(selectedIds) } },
+      {
+        onSuccess: () => {
+          setShowBulkDeleteConfirm(false);
+          setSelectedIds(new Set());
+          invalidateQueries();
+          toast({ title: `${selectedIds.size} data berhasil dihapus` });
+        },
+        onError: () =>
+          toast({ variant: "destructive", title: "Gagal menghapus data" }),
+      },
+    );
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!purchases) return;
+    if (selectedIds.size === purchases.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(purchases.map((p) => p.id)));
+    }
+  };
+
+  const allSelected =
+    purchases && purchases.length > 0 && selectedIds.size === purchases.length;
+
   const totalJumlah =
     purchases?.reduce((sum, p) => sum + Number(p.jumlah), 0) || 0;
   const totalHarga =
@@ -129,7 +190,12 @@ export default function Purchases() {
   const buildExportUrl = (base: string) => {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
-    if (tanggal) params.set("tanggal", tanggal);
+    if (startDate) params.set("startDate", startDate);
+    if (endDate) params.set("endDate", endDate);
+    if (kategori) params.set("kategori", kategori);
+    if (selectedIds.size > 0) {
+      params.set("ids", Array.from(selectedIds).join(","));
+    }
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;
   };
@@ -140,10 +206,13 @@ export default function Purchases() {
 
   const clearFilters = () => {
     setSearch("");
-    setTanggal("");
+    setStartDate("");
+    setEndDate("");
+    setKategori("");
   };
 
-  const hasFilters = search || tanggal;
+  const hasFilters = search || startDate || endDate || kategori;
+
 
   return (
     <Layout>
@@ -157,19 +226,15 @@ export default function Purchases() {
               Kelola catatan transaksi pembelian Anda.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              asChild
-              data-testid="btn-export-excel"
-            >
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" asChild data-testid="btn-export-excel">
               <a
                 href={buildExportUrl("/api/purchases/export/excel")}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FileDown className="w-4 h-4 mr-2" />
-                Excel
+                <FileDown className="w-4 h-4 mr-1" />
+                Excel{selectedIds.size > 0 && ` (${selectedIds.size})`}
               </a>
             </Button>
             <Button variant="outline" asChild data-testid="btn-export-pdf">
@@ -178,8 +243,8 @@ export default function Purchases() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FileText className="w-4 h-4 mr-2" />
-                PDF
+                <FileText className="w-4 h-4 mr-1" />
+                PDF{selectedIds.size > 0 && ` (${selectedIds.size})`}
               </a>
             </Button>
             <Button
@@ -187,9 +252,19 @@ export default function Purchases() {
               onClick={handlePrint}
               data-testid="btn-print"
             >
-              <Printer className="w-4 h-4 mr-2" />
-              Cetak
+              <Printer className="w-4 h-4 mr-1" />
+              Cetak{selectedIds.size > 0 && ` (${selectedIds.size})`}
             </Button>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => setShowBulkDeleteConfirm(true)}
+                data-testid="btn-bulk-delete"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Hapus ({selectedIds.size})
+              </Button>
+            )}
             <Button
               onClick={() => {
                 setEditingItem(null);
@@ -197,7 +272,7 @@ export default function Purchases() {
               }}
               data-testid="btn-add"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-1" />
               Tambah
             </Button>
           </div>
@@ -205,38 +280,68 @@ export default function Purchases() {
 
         <Card className="print:border-none print:shadow-none">
           <CardHeader className="print-hide">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Cari keterangan atau nomor..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                  data-testid="input-search"
-                />
-              </div>
-              <div className="relative flex items-center gap-2">
-                <CalendarDays className="absolute left-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="date"
-                  value={tanggal}
-                  onChange={(e) => setTanggal(e.target.value)}
-                  className="pl-9 w-44"
-                  data-testid="input-tanggal"
-                  title="Filter berdasarkan tanggal"
-                />
-              </div>
-              {hasFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  data-testid="btn-clear-filter"
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Cari keterangan atau nomor..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9"
+                    data-testid="input-search"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-40"
+                    data-testid="input-start-date"
+                    title="Dari tanggal"
+                  />
+                  <span className="text-muted-foreground text-sm">s/d</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-40"
+                    data-testid="input-end-date"
+                    title="Sampai tanggal"
+                  />
+                </div>
+                <select
+                  value={kategori}
+                  onChange={(e) => setKategori(e.target.value)}
+                  className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  data-testid="filter-kategori"
                 >
-                  <X className="w-4 h-4 mr-1" />
-                  Reset
-                </Button>
+                  <option value="">Semua Kategori</option>
+                  {KATEGORI_OPTIONS.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+                {hasFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    data-testid="btn-clear-filter"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Reset
+                  </Button>
+                )}
+              </div>
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <CheckSquare className="w-4 h-4" />
+                  <span>{selectedIds.size} data dipilih</span>
+                </div>
               )}
             </div>
           </CardHeader>
@@ -252,17 +357,29 @@ export default function Purchases() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 print:bg-gray-100">
-                    <TableHead className="w-[100px] print:text-black">
+                    <TableHead className="w-[40px] print-hide">
+                      <input
+                        type="checkbox"
+                        checked={!!allSelected}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-gray-300"
+                        data-testid="checkbox-select-all"
+                      />
+                    </TableHead>
+                    <TableHead className="w-[80px] print:text-black">
                       Nomor
                     </TableHead>
-                    <TableHead className="w-[120px] print:text-black">
+                    <TableHead className="w-[100px] print:text-black">
                       Tanggal
+                    </TableHead>
+                    <TableHead className="w-[80px] print:text-black">
+                      Kategori
                     </TableHead>
                     <TableHead className="print:text-black">
                       Keterangan
                     </TableHead>
                     <TableHead className="text-right print:text-black">
-                      Jumlah
+                      Jml
                     </TableHead>
                     <TableHead className="print:text-black">Satuan</TableHead>
                     <TableHead className="text-right print:text-black">
@@ -271,7 +388,8 @@ export default function Purchases() {
                     <TableHead className="text-right print:text-black">
                       Total
                     </TableHead>
-                    <TableHead className="w-[100px] text-center print-hide">
+                    <TableHead className="print:text-black">Supplier</TableHead>
+                    <TableHead className="w-[80px] text-center print-hide">
                       Aksi
                     </TableHead>
                   </TableRow>
@@ -280,7 +398,7 @@ export default function Purchases() {
                   {isLoading ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={11}
                         className="text-center py-10 text-muted-foreground"
                       >
                         Memuat data...
@@ -289,7 +407,7 @@ export default function Purchases() {
                   ) : purchases?.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={8}
+                        colSpan={11}
                         className="text-center py-10 text-muted-foreground"
                       >
                         Tidak ada data ditemukan
@@ -299,14 +417,26 @@ export default function Purchases() {
                     purchases?.map((p) => (
                       <TableRow
                         key={p.id}
-                        className="print:border-b print:border-black"
+                        className={`print:border-b print:border-black ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}
                         data-testid={`row-purchase-${p.id}`}
                       >
-                        <TableCell className="font-medium print:text-black">
+                        <TableCell className="print-hide">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(p.id)}
+                            onChange={() => toggleSelect(p.id)}
+                            className="h-4 w-4 rounded border-gray-300"
+                            data-testid={`checkbox-${p.id}`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium print:text-black text-xs">
                           {p.nomor}
                         </TableCell>
-                        <TableCell className="print:text-black">
+                        <TableCell className="print:text-black text-xs">
                           {formatDate(p.tanggal)}
+                        </TableCell>
+                        <TableCell className="print:text-black text-xs">
+                          {p.kategori || "-"}
                         </TableCell>
                         <TableCell className="print:text-black">
                           {p.keterangan}
@@ -327,6 +457,14 @@ export default function Purchases() {
                         </TableCell>
                         <TableCell className="text-right font-medium print:text-black">
                           {formatCurrency(p.harga_total)}
+                        </TableCell>
+                        <TableCell className="print:text-black text-xs">
+                          <div>{p.supplier || "-"}</div>
+                          {p.supplier_contact && (
+                            <div className="text-xs text-muted-foreground">
+                              {p.supplier_contact}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-center print-hide">
                           <div className="flex justify-center gap-1">
@@ -358,14 +496,18 @@ export default function Purchases() {
                 {purchases && purchases.length > 0 && (
                   <tfoot>
                     <TableRow className="bg-muted/50 font-bold print:bg-gray-100 print:text-black">
-                      <TableCell colSpan={3} className="text-right">
+                      <TableCell className="print-hide"></TableCell>
+                      <TableCell colSpan={4} className="text-right">
                         TOTAL
                       </TableCell>
-                      <TableCell className="text-right">{totalJumlah}</TableCell>
+                      <TableCell className="text-right">
+                        {totalJumlah}
+                      </TableCell>
                       <TableCell colSpan={2}></TableCell>
                       <TableCell className="text-right">
                         {formatCurrency(totalHarga)}
                       </TableCell>
+                      <TableCell></TableCell>
                       <TableCell className="print-hide"></TableCell>
                     </TableRow>
                   </tfoot>
@@ -392,13 +534,16 @@ export default function Purchases() {
       <PurchaseForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
-        defaultValues={editingItem || undefined}
+        defaultValues={editingItem ? { ...editingItem, supplier: editingItem.supplier ?? undefined, supplier_contact: editingItem.supplier_contact ?? undefined } : undefined}
         onSubmit={editingItem ? handleUpdate : handleCreate}
         title={editingItem ? "Edit Data Pembelian" : "Tambah Data Pembelian"}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
       />
 
-      <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={() => setDeletingId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Data</AlertDialogTitle>
@@ -414,6 +559,32 @@ export default function Purchases() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showBulkDeleteConfirm}
+        onOpenChange={() => setShowBulkDeleteConfirm(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus {selectedIds.size} Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus {selectedIds.size} data yang
+              dipilih? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {bulkDeleteMutation.isPending
+                ? "Menghapus..."
+                : `Hapus ${selectedIds.size} Data`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -17,6 +17,9 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  BackupFile,
+  BackupResponse,
+  BulkDeleteRequest,
   DashboardSummary,
   DeleteResponse,
   ErrorResponse,
@@ -555,6 +558,92 @@ export const useDeletePurchase = <
   TContext
 > => {
   return useMutation(getDeletePurchaseMutationOptions(options));
+};
+
+/**
+ * @summary Delete multiple purchases by IDs
+ */
+export const getBulkDeletePurchasesUrl = () => {
+  return `/api/purchases/bulk-delete`;
+};
+
+export const bulkDeletePurchases = async (
+  bulkDeleteRequest: BulkDeleteRequest,
+  options?: RequestInit,
+): Promise<DeleteResponse> => {
+  return customFetch<DeleteResponse>(getBulkDeletePurchasesUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bulkDeleteRequest),
+  });
+};
+
+export const getBulkDeletePurchasesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeletePurchases>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bulkDeletePurchases>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  const mutationKey = ["bulkDeletePurchases"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bulkDeletePurchases>>,
+    { data: BodyType<BulkDeleteRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return bulkDeletePurchases(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BulkDeletePurchasesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bulkDeletePurchases>>
+>;
+export type BulkDeletePurchasesMutationBody = BodyType<BulkDeleteRequest>;
+export type BulkDeletePurchasesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete multiple purchases by IDs
+ */
+export const useBulkDeletePurchases = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeletePurchases>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof bulkDeletePurchases>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  return useMutation(getBulkDeletePurchasesMutationOptions(options));
 };
 
 /**
@@ -1196,6 +1285,92 @@ export const useDeletePurchasePlan = <
 };
 
 /**
+ * @summary Delete multiple purchase plans by IDs
+ */
+export const getBulkDeletePurchasePlansUrl = () => {
+  return `/api/purchase-plans/bulk-delete`;
+};
+
+export const bulkDeletePurchasePlans = async (
+  bulkDeleteRequest: BulkDeleteRequest,
+  options?: RequestInit,
+): Promise<DeleteResponse> => {
+  return customFetch<DeleteResponse>(getBulkDeletePurchasePlansUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bulkDeleteRequest),
+  });
+};
+
+export const getBulkDeletePurchasePlansMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeletePurchasePlans>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof bulkDeletePurchasePlans>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  const mutationKey = ["bulkDeletePurchasePlans"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof bulkDeletePurchasePlans>>,
+    { data: BodyType<BulkDeleteRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return bulkDeletePurchasePlans(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type BulkDeletePurchasePlansMutationResult = NonNullable<
+  Awaited<ReturnType<typeof bulkDeletePurchasePlans>>
+>;
+export type BulkDeletePurchasePlansMutationBody = BodyType<BulkDeleteRequest>;
+export type BulkDeletePurchasePlansMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete multiple purchase plans by IDs
+ */
+export const useBulkDeletePurchasePlans = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof bulkDeletePurchasePlans>>,
+    TError,
+    { data: BodyType<BulkDeleteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof bulkDeletePurchasePlans>>,
+  TError,
+  { data: BodyType<BulkDeleteRequest> },
+  TContext
+> => {
+  return useMutation(getBulkDeletePurchasePlansMutationOptions(options));
+};
+
+/**
  * @summary Export purchase plans as Excel file
  */
 export const getExportPurchasePlansExcelUrl = (
@@ -1543,6 +1718,250 @@ export function useGetRecentActivity<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentActivityQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Trigger manual database backup
+ */
+export const getCreateBackupUrl = () => {
+  return `/api/backup`;
+};
+
+export const createBackup = async (
+  options?: RequestInit,
+): Promise<BackupResponse> => {
+  return customFetch<BackupResponse>(getCreateBackupUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCreateBackupMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBackup>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBackup>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["createBackup"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBackup>>,
+    void
+  > = () => {
+    return createBackup(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBackupMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBackup>>
+>;
+
+export type CreateBackupMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Trigger manual database backup
+ */
+export const useCreateBackup = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBackup>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBackup>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCreateBackupMutationOptions(options));
+};
+
+/**
+ * @summary List all available backups
+ */
+export const getListBackupsUrl = () => {
+  return `/api/backups`;
+};
+
+export const listBackups = async (
+  options?: RequestInit,
+): Promise<BackupFile[]> => {
+  return customFetch<BackupFile[]>(getListBackupsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListBackupsQueryKey = () => {
+  return [`/api/backups`] as const;
+};
+
+export const getListBackupsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listBackups>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBackups>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListBackupsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listBackups>>> = ({
+    signal,
+  }) => listBackups({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listBackups>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListBackupsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listBackups>>
+>;
+export type ListBackupsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all available backups
+ */
+
+export function useListBackups<
+  TData = Awaited<ReturnType<typeof listBackups>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listBackups>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListBackupsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Download a backup file
+ */
+export const getDownloadBackupUrl = (filename: string) => {
+  return `/api/backup/download/${filename}`;
+};
+
+export const downloadBackup = async (
+  filename: string,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getDownloadBackupUrl(filename), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getDownloadBackupQueryKey = (filename: string) => {
+  return [`/api/backup/download/${filename}`] as const;
+};
+
+export const getDownloadBackupQueryOptions = <
+  TData = Awaited<ReturnType<typeof downloadBackup>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  filename: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof downloadBackup>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getDownloadBackupQueryKey(filename);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadBackup>>> = ({
+    signal,
+  }) => downloadBackup(filename, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!filename,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof downloadBackup>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type DownloadBackupQueryResult = NonNullable<
+  Awaited<ReturnType<typeof downloadBackup>>
+>;
+export type DownloadBackupQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Download a backup file
+ */
+
+export function useDownloadBackup<
+  TData = Awaited<ReturnType<typeof downloadBackup>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  filename: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof downloadBackup>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getDownloadBackupQueryOptions(filename, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

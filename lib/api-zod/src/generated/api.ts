@@ -20,7 +20,9 @@ export const HealthCheckResponse = zod.object({
  */
 export const GetPurchasesQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
 });
 
 export const GetPurchasesResponseItem = zod.object({
@@ -33,6 +35,9 @@ export const GetPurchasesResponseItem = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 export const GetPurchasesResponse = zod.array(GetPurchasesResponseItem);
 
@@ -47,6 +52,9 @@ export const CreatePurchaseBody = zod.object({
   satuan: zod.string(),
   harga_satuan: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -66,6 +74,9 @@ export const GetPurchaseResponse = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -83,6 +94,9 @@ export const UpdatePurchaseBody = zod.object({
   satuan: zod.string(),
   harga_satuan: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 export const UpdatePurchaseResponse = zod.object({
@@ -95,6 +109,9 @@ export const UpdatePurchaseResponse = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -110,11 +127,29 @@ export const DeletePurchaseResponse = zod.object({
 });
 
 /**
+ * @summary Delete multiple purchases by IDs
+ */
+export const BulkDeletePurchasesBody = zod.object({
+  ids: zod.array(zod.number()),
+});
+
+export const BulkDeletePurchasesResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
  * @summary Export purchases as Excel file
  */
 export const ExportPurchasesExcelQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
 });
 
 /**
@@ -122,7 +157,13 @@ export const ExportPurchasesExcelQueryParams = zod.object({
  */
 export const ExportPurchasesPdfQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
 });
 
 /**
@@ -130,7 +171,9 @@ export const ExportPurchasesPdfQueryParams = zod.object({
  */
 export const GetPurchasePlansQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
 });
 
 export const GetPurchasePlansResponseItem = zod.object({
@@ -143,6 +186,9 @@ export const GetPurchasePlansResponseItem = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 export const GetPurchasePlansResponse = zod.array(GetPurchasePlansResponseItem);
 
@@ -157,6 +203,9 @@ export const CreatePurchasePlanBody = zod.object({
   satuan: zod.string(),
   harga_satuan: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -176,6 +225,9 @@ export const GetPurchasePlanResponse = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -193,6 +245,9 @@ export const UpdatePurchasePlanBody = zod.object({
   satuan: zod.string(),
   harga_satuan: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 export const UpdatePurchasePlanResponse = zod.object({
@@ -205,6 +260,9 @@ export const UpdatePurchasePlanResponse = zod.object({
   harga_satuan: zod.number(),
   harga_total: zod.number(),
   catatan: zod.string(),
+  kategori: zod.string(),
+  supplier: zod.string().nullish(),
+  supplier_contact: zod.string().nullish(),
 });
 
 /**
@@ -220,11 +278,29 @@ export const DeletePurchasePlanResponse = zod.object({
 });
 
 /**
+ * @summary Delete multiple purchase plans by IDs
+ */
+export const BulkDeletePurchasePlansBody = zod.object({
+  ids: zod.array(zod.number()),
+});
+
+export const BulkDeletePurchasePlansResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
  * @summary Export purchase plans as Excel file
  */
 export const ExportPurchasePlansExcelQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
 });
 
 /**
@@ -232,7 +308,13 @@ export const ExportPurchasePlansExcelQueryParams = zod.object({
  */
 export const ExportPurchasePlansPdfQueryParams = zod.object({
   search: zod.coerce.string().optional(),
-  tanggal: zod.coerce.string().optional(),
+  startDate: zod.coerce.string().optional(),
+  endDate: zod.coerce.string().optional(),
+  kategori: zod.coerce.string().optional(),
+  ids: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated IDs for selective export"),
 });
 
 /**
@@ -262,6 +344,9 @@ export const GetRecentActivityResponse = zod.object({
       harga_satuan: zod.number(),
       harga_total: zod.number(),
       catatan: zod.string(),
+      kategori: zod.string(),
+      supplier: zod.string().nullish(),
+      supplier_contact: zod.string().nullish(),
     }),
   ),
   recent_plans: zod.array(
@@ -275,6 +360,35 @@ export const GetRecentActivityResponse = zod.object({
       harga_satuan: zod.number(),
       harga_total: zod.number(),
       catatan: zod.string(),
+      kategori: zod.string(),
+      supplier: zod.string().nullish(),
+      supplier_contact: zod.string().nullish(),
     }),
   ),
+});
+
+/**
+ * @summary Trigger manual database backup
+ */
+export const CreateBackupResponse = zod.object({
+  success: zod.boolean(),
+  filename: zod.string(),
+  message: zod.string(),
+});
+
+/**
+ * @summary List all available backups
+ */
+export const ListBackupsResponseItem = zod.object({
+  filename: zod.string(),
+  size: zod.number(),
+  created: zod.string(),
+});
+export const ListBackupsResponse = zod.array(ListBackupsResponseItem);
+
+/**
+ * @summary Download a backup file
+ */
+export const DownloadBackupParams = zod.object({
+  filename: zod.coerce.string(),
 });

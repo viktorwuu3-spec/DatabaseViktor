@@ -18,6 +18,10 @@ export interface DeleteResponse {
   message: string;
 }
 
+export interface BulkDeleteRequest {
+  ids: number[];
+}
+
 export interface Purchase {
   id: number;
   nomor: string;
@@ -28,6 +32,9 @@ export interface Purchase {
   harga_satuan: number;
   harga_total: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }
 
 export interface PurchaseInput {
@@ -38,6 +45,9 @@ export interface PurchaseInput {
   satuan: string;
   harga_satuan: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }
 
 export interface PurchasePlan {
@@ -50,6 +60,9 @@ export interface PurchasePlan {
   harga_satuan: number;
   harga_total: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }
 
 export interface PurchasePlanInput {
@@ -60,6 +73,9 @@ export interface PurchasePlanInput {
   satuan: string;
   harga_satuan: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }
 
 export interface DashboardSummary {
@@ -76,32 +92,72 @@ export interface RecentActivity {
   recent_plans: PurchasePlan[];
 }
 
+export interface BackupResponse {
+  success: boolean;
+  filename: string;
+  message: string;
+}
+
+export interface BackupFile {
+  filename: string;
+  size: number;
+  created: string;
+}
+
 export type GetPurchasesParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
 };
 
 export type ExportPurchasesExcelParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
 };
 
 export type ExportPurchasesPdfParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
 };
 
 export type GetPurchasePlansParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
 };
 
 export type ExportPurchasePlansExcelParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
 };
 
 export type ExportPurchasePlansPdfParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+  /**
+   * Comma-separated IDs for selective export
+   */
+  ids?: string;
 };

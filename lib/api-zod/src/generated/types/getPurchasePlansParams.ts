@@ -8,5 +8,7 @@
 
 export type GetPurchasePlansParams = {
   search?: string;
-  tanggal?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
 };

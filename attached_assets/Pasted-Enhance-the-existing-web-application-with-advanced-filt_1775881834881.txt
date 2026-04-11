@@ -1,0 +1,323 @@
+Enhance the existing web application with advanced filtering, category management, supplier fields, selectable data actions, and automatic database backup. Ensure all features are clear, stable, and do not introduce bugs.
+
+==================================================
+
+1. ADD CATEGORY & SUPPLIER FIELDS
+   ==================================================
+
+Update tables:
+
+* purchases
+* purchase_plans
+
+Add fields:
+
+* kategori (TEXT)
+* supplier (TEXT, optional)
+* supplier_contact (TEXT, optional)
+
+IMPORTANT RULES:
+
+* kategori can be filled or empty
+* supplier & supplier_contact are OPTIONAL (allow NULL)
+* Do NOT break existing data
+
+DATABASE:
+
+* If table exists → use ALTER TABLE
+* Do NOT delete or recreate table
+
+FRONTEND:
+
+* Add inputs:
+
+  * kategori (dropdown or text)
+  * supplier (text)
+  * supplier_contact (text)
+
+Example kategori:
+
+* ATK
+* Konsumsi
+* Operasional
+* Lainnya
+
+DISPLAY:
+
+* If supplier empty → show "-"
+* If contact empty → show "-"
+
+==================================================
+2. FILTER FEATURE (VERY IMPORTANT)
+==================================
+
+Apply to ALL tables:
+
+* purchases
+* purchase_plans
+* cash_in
+
+FILTER OPTIONS:
+
+A. By Tanggal:
+
+* startDate (YYYY-MM-DD)
+* endDate (YYYY-MM-DD)
+
+B. By Kategori:
+
+* Dropdown (only for purchases & purchase_plans)
+
+C. Search (optional):
+
+* nomor
+* keterangan
+
+BACKEND:
+
+* Modify GET endpoints to accept query params:
+  ?startDate=
+  ?endDate=
+  ?kategori=
+  ?search=
+
+* Sanitize all inputs (prevent SQL injection)
+
+* Handle empty filters gracefully
+
+FRONTEND:
+
+* Add filter section above table
+* Buttons:
+
+  * Filter
+  * Reset Filter
+
+==================================================
+3. SELECTABLE DATA (CHECKBOX SYSTEM)
+====================================
+
+Add:
+
+* Checkbox in each row
+* "Select All" checkbox in header
+
+Selected IDs will be used for:
+
+* Export
+* Print
+* Delete
+
+IMPORTANT:
+
+* Store selected IDs in frontend state
+* Validate IDs before sending to backend
+
+==================================================
+4. SELECTIVE ACTION FEATURES
+============================
+
+A. EXPORT SELECTED DATA
+
+* Export ONLY selected rows to:
+
+  * PDF
+  * Excel
+
+B. PRINT SELECTED DATA
+
+* Print ONLY selected rows
+
+C. DELETE SELECTED DATA
+
+* Bulk delete
+* Add confirmation popup
+
+D. EDIT DATA
+
+* Edit button per row
+* Load data into form
+
+VALIDATION:
+
+* If no data selected → show alert
+
+==================================================
+5. EXPORT & PRINT UPDATE
+========================
+
+Update:
+
+* /utils/pdfGenerator.js
+* /utils/excelGenerator.js
+
+REQUIREMENTS:
+
+* Accept filtered data
+* Accept selected data
+* Format consistent with existing reports
+
+==================================================
+6. FRONTEND IMPLEMENTATION
+==========================
+
+Update:
+/public/js/pembelian.js
+/public/js/rencana.js
+/public/js/kas.js
+
+FEATURES:
+
+* Handle checkbox logic
+* Store selected IDs
+* Send selected data to backend
+* Handle filter inputs
+* Handle loading states
+
+==================================================
+7. UI/UX IMPROVEMENTS
+=====================
+
+Add:
+
+* Filter section
+* Checkbox column
+* Action buttons:
+
+  * Export PDF (Selected)
+  * Export Excel (Selected)
+  * Print (Selected)
+  * Delete Selected
+
+Ensure:
+
+* Clean layout
+* Responsive (mobile & desktop)
+* Easy to use
+
+==================================================
+8. AUTOMATIC DATABASE BACKUP (CRITICAL)
+=======================================
+
+A. CREATE FOLDER:
+
+* /backups
+
+B. FILE FORMAT:
+backup-YYYY-MM-DD-HH-mm.db
+
+C. AUTO BACKUP:
+
+* Use node-cron
+* Run once daily (00:00)
+
+D. PROCESS:
+
+* Copy database file safely (fs.copyFile)
+* Save to /backups
+
+IMPORTANT:
+
+* Do NOT interrupt database usage
+
+==================================================
+9. BACKUP LIMIT
+===============
+
+* Keep ONLY last 7 backups
+* Delete older backups automatically
+
+==================================================
+10. MANUAL BACKUP FEATURE
+=========================
+
+API:
+POST /backup
+
+Function:
+
+* Trigger backup manually
+
+FRONTEND:
+
+* Button: "Backup Sekarang"
+
+==================================================
+11. DOWNLOAD BACKUP
+===================
+
+API:
+GET /backup/download/:filename
+
+FEATURES:
+
+* List all backup files
+* Download button per file
+
+SECURITY:
+
+* Validate filename
+* Prevent access outside /backups
+
+==================================================
+12. ERROR HANDLING (VERY IMPORTANT)
+===================================
+
+* Handle all errors gracefully
+* Do NOT crash server
+
+Cases:
+
+* Missing folder → auto create
+* File error → return message
+* Invalid input → reject
+
+Response format:
+
+Success:
+{
+success: true,
+data: ...
+}
+
+Error:
+{
+success: false,
+message: "Error message"
+}
+
+==================================================
+13. VALIDATION & SAFETY
+=======================
+
+* Validate all inputs (backend & frontend)
+* Prevent empty submissions
+* Prevent invalid IDs
+* Confirm before delete
+* Show loading indicator
+
+==================================================
+14. LOGGING
+===========
+
+Log:
+
+* Backup success
+* Backup failure
+* Deleted old backups
+* API errors
+
+==================================================
+15. IMPORTANT RULES (ANTI BUG)
+==============================
+
+* Do NOT break existing features
+* Keep modular structure
+* Avoid duplicate logic
+* Ensure performance remains good
+* Test all features after implementation
+
+==================================================
+
+Integrate all features seamlessly into the current system.
+Ensure the application remains stable, accurate, and production-ready.

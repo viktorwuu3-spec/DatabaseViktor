@@ -22,6 +22,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+export const KATEGORI_OPTIONS = ["ATK", "Konsumsi", "Operasional", "Lainnya"] as const;
+
 const formSchema = z.object({
   nomor: z.string().min(1, "Nomor wajib diisi"),
   tanggal: z.string().min(1, "Tanggal wajib diisi"),
@@ -30,6 +32,9 @@ const formSchema = z.object({
   satuan: z.string().min(1, "Satuan wajib diisi"),
   harga_satuan: z.coerce.number().min(0, "Harga tidak boleh negatif"),
   catatan: z.string().optional(),
+  kategori: z.string().optional(),
+  supplier: z.string().optional(),
+  supplier_contact: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,25 +48,40 @@ interface PurchaseFormProps {
   isSubmitting?: boolean;
 }
 
+const EMPTY_DEFAULTS: FormValues = {
+  nomor: "",
+  tanggal: new Date().toISOString().split("T")[0],
+  keterangan: "",
+  jumlah: 1,
+  satuan: "pcs",
+  harga_satuan: 0,
+  catatan: "",
+  kategori: "",
+  supplier: "",
+  supplier_contact: "",
+};
+
 export function PurchaseForm({
   open,
   onOpenChange,
   defaultValues,
   onSubmit,
   title,
-  isSubmitting
+  isSubmitting,
 }: PurchaseFormProps) {
+  const toFormValues = (dv?: PurchaseFormProps["defaultValues"]): FormValues => {
+    if (!dv) return EMPTY_DEFAULTS;
+    return {
+      ...EMPTY_DEFAULTS,
+      ...dv,
+      supplier: dv.supplier ?? "",
+      supplier_contact: dv.supplier_contact ?? "",
+    };
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues || {
-      nomor: "",
-      tanggal: new Date().toISOString().split('T')[0],
-      keterangan: "",
-      jumlah: 1,
-      satuan: "pcs",
-      harga_satuan: 0,
-      catatan: "",
-    },
+    defaultValues: toFormValues(defaultValues),
   });
 
   const jumlah = form.watch("jumlah");
@@ -69,25 +89,18 @@ export function PurchaseForm({
   const total = (Number(jumlah) || 0) * (Number(hargaSatuan) || 0);
 
   useEffect(() => {
-    if (open && defaultValues) {
-      form.reset(defaultValues);
-    } else if (open) {
-      form.reset({
-        nomor: "",
-        tanggal: new Date().toISOString().split('T')[0],
-        keterangan: "",
-        jumlah: 1,
-        satuan: "pcs",
-        harga_satuan: 0,
-        catatan: "",
-      });
+    if (open) {
+      form.reset(toFormValues(defaultValues));
     }
   }, [open, defaultValues, form]);
 
   const handleSubmit = (values: FormValues) => {
     onSubmit({
       ...values,
-      catatan: values.catatan || ""
+      catatan: values.catatan || "",
+      kategori: values.kategori || "",
+      supplier: values.supplier || null,
+      supplier_contact: values.supplier_contact || null,
     });
   };
 
@@ -99,7 +112,10 @@ export function PurchaseForm({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -121,7 +137,11 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Tanggal</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} data-testid="input-tanggal" />
+                      <Input
+                        type="date"
+                        {...field}
+                        data-testid="input-tanggal-form"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,19 +149,45 @@ export function PurchaseForm({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="keterangan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Keterangan / Nama Barang</FormLabel>
-                  <FormControl>
-                    <Input {...field} data-testid="input-keterangan" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="kategori"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kategori</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        data-testid="input-kategori"
+                      >
+                        <option value="">-- Pilih Kategori --</option>
+                        {KATEGORI_OPTIONS.map((k) => (
+                          <option key={k} value={k}>
+                            {k}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="keterangan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Keterangan / Nama Barang</FormLabel>
+                    <FormControl>
+                      <Input {...field} data-testid="input-keterangan" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="grid grid-cols-3 gap-4">
               <FormField
@@ -151,7 +197,12 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Jumlah</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" {...field} data-testid="input-jumlah" />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        {...field}
+                        data-testid="input-jumlah"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,7 +228,11 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Harga Satuan</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} data-testid="input-harga-satuan" />
+                      <Input
+                        type="number"
+                        {...field}
+                        data-testid="input-harga-satuan"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -188,8 +243,48 @@ export function PurchaseForm({
             <div className="p-4 bg-muted rounded-md flex justify-between items-center">
               <span className="font-medium">Total Harga:</span>
               <span className="text-xl font-bold">
-                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(total)}
+                {new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                }).format(total)}
               </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supplier (Opsional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nama supplier"
+                        data-testid="input-supplier"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="supplier_contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kontak Supplier (Opsional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="No. telp / email"
+                        data-testid="input-supplier-contact"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <FormField
@@ -207,10 +302,18 @@ export function PurchaseForm({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Batal
               </Button>
-              <Button type="submit" disabled={isSubmitting} data-testid="button-submit-form">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                data-testid="button-submit-form"
+              >
                 {isSubmitting ? "Menyimpan..." : "Simpan"}
               </Button>
             </DialogFooter>

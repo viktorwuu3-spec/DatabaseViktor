@@ -1,5 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import cron from "node-cron";
+import { createBackupFile } from "./routes/backup";
 
 const rawPort = process.env["PORT"];
 
@@ -14,6 +16,16 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+cron.schedule("0 0 * * *", () => {
+  logger.info("Running scheduled daily backup...");
+  try {
+    const filename = createBackupFile();
+    logger.info({ filename }, "Daily backup completed");
+  } catch (err) {
+    logger.error({ err }, "Daily backup failed");
+  }
+});
 
 app.listen(port, (err) => {
   if (err) {

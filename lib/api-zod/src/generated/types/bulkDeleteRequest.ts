@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type GetPurchasesParams = {
-  search?: string;
-  startDate?: string;
-  endDate?: string;
-  kategori?: string;
-};
+export interface BulkDeleteRequest {
+  ids: number[];
+}

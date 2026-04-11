@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./backupFile";
+export * from "./backupResponse";
+export * from "./bulkDeleteRequest";
 export * from "./dashboardSummary";
 export * from "./deleteResponse";
 export * from "./errorResponse";

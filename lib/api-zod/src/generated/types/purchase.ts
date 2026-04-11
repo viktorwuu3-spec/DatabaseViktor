@@ -16,4 +16,7 @@ export interface Purchase {
   harga_satuan: number;
   harga_total: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }

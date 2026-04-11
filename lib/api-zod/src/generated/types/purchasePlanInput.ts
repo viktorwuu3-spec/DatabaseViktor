@@ -14,4 +14,7 @@ export interface PurchasePlanInput {
   satuan: string;
   harga_satuan: number;
   catatan: string;
+  kategori: string;
+  supplier?: string | null;
+  supplier_contact?: string | null;
 }

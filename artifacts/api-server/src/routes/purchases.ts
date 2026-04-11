@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { purchasesTable } from "@workspace/db";
-import { eq, ilike, and, sql } from "drizzle-orm";
+import { eq, ilike, and, gte, lte, inArray, or } from "drizzle-orm";
 import {
   CreatePurchaseBody,
   UpdatePurchaseBody,
@@ -9,38 +9,59 @@ import {
   GetPurchaseParams,
   UpdatePurchaseParams,
   DeletePurchaseParams,
+  BulkDeletePurchasesBody,
+  ExportPurchasesExcelQueryParams,
+  ExportPurchasesPdfQueryParams,
 } from "@workspace/api-zod";
+import type { SQL } from "drizzle-orm";
 import PDFDocument from "pdfkit";
 import * as XLSX from "xlsx";
 
 const router: IRouter = Router();
 
+function buildPurchaseFilters(params: {
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  kategori?: string;
+}): SQL[] {
+  const conditions: SQL[] = [];
+  if (params.search) {
+    conditions.push(
+      or(
+        ilike(purchasesTable.keterangan, `%${params.search}%`),
+        ilike(purchasesTable.nomor, `%${params.search}%`),
+      )!,
+    );
+  }
+  if (params.startDate) {
+    conditions.push(gte(purchasesTable.tanggal, params.startDate));
+  }
+  if (params.endDate) {
+    conditions.push(lte(purchasesTable.tanggal, params.endDate));
+  }
+  if (params.kategori) {
+    conditions.push(eq(purchasesTable.kategori, params.kategori));
+  }
+  return conditions;
+}
+
+async function queryPurchases(conditions: SQL[], ids?: number[]) {
+  const allConditions = [...conditions];
+  if (ids && ids.length > 0) {
+    allConditions.push(inArray(purchasesTable.id, ids));
+  }
+  return allConditions.length > 0
+    ? db.select().from(purchasesTable).where(and(...allConditions)).orderBy(purchasesTable.id)
+    : db.select().from(purchasesTable).orderBy(purchasesTable.id);
+}
+
 router.get("/purchases", async (req, res) => {
   try {
     const parsed = GetPurchasesQueryParams.safeParse(req.query);
-    const search = parsed.success ? parsed.data.search : undefined;
-    const tanggal = parsed.success ? parsed.data.tanggal : undefined;
-
-    let conditions = [];
-    if (search) {
-      conditions.push(ilike(purchasesTable.keterangan, `%${search}%`));
-    }
-    if (tanggal) {
-      conditions.push(eq(purchasesTable.tanggal, tanggal));
-    }
-
-    const data =
-      conditions.length > 0
-        ? await db
-            .select()
-            .from(purchasesTable)
-            .where(and(...conditions))
-            .orderBy(purchasesTable.id)
-        : await db
-            .select()
-            .from(purchasesTable)
-            .orderBy(purchasesTable.id);
-
+    const filters = parsed.success ? parsed.data : {};
+    const conditions = buildPurchaseFilters(filters);
+    const data = await queryPurchases(conditions);
     res.json(data);
   } catch (err) {
     req.log.error({ err }, "Failed to get purchases");
@@ -56,12 +77,12 @@ router.post("/purchases", async (req, res) => {
       return;
     }
 
-    const { nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, catatan } = parsed.data;
+    const { nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, catatan, kategori, supplier, supplier_contact } = parsed.data;
     const harga_total = jumlah * harga_satuan;
 
     const [created] = await db
       .insert(purchasesTable)
-      .values({ nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan })
+      .values({ nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan, kategori, supplier: supplier || null, supplier_contact: supplier_contact || null })
       .returning();
 
     res.status(201).json(created);
@@ -71,37 +92,58 @@ router.post("/purchases", async (req, res) => {
   }
 });
 
+router.post("/purchases/bulk-delete", async (req, res) => {
+  try {
+    const parsed = BulkDeletePurchasesBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid input: ids array required" });
+      return;
+    }
+
+    const { ids } = parsed.data;
+    if (ids.length === 0) {
+      res.status(400).json({ error: "No IDs provided" });
+      return;
+    }
+
+    const deleted = await db
+      .delete(purchasesTable)
+      .where(inArray(purchasesTable.id, ids))
+      .returning();
+
+    res.json({ success: true, message: `${deleted.length} data berhasil dihapus` });
+  } catch (err) {
+    req.log.error({ err }, "Failed to bulk delete purchases");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/purchases/export/excel", async (req, res) => {
   try {
-    const parsed = GetPurchasesQueryParams.safeParse(req.query);
-    const search = parsed.success ? parsed.data.search : undefined;
-    const tanggal = parsed.success ? parsed.data.tanggal : undefined;
-
-    const conditions = [];
-    if (search) conditions.push(ilike(purchasesTable.keterangan, `%${search}%`));
-    if (tanggal) conditions.push(eq(purchasesTable.tanggal, tanggal));
-
-    const data =
-      conditions.length > 0
-        ? await db.select().from(purchasesTable).where(and(...conditions)).orderBy(purchasesTable.id)
-        : await db.select().from(purchasesTable).orderBy(purchasesTable.id);
+    const parsed = ExportPurchasesExcelQueryParams.safeParse(req.query);
+    const params = parsed.success ? parsed.data : {};
+    const conditions = buildPurchaseFilters(params);
+    const ids = params.ids ? params.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
+    const data = await queryPurchases(conditions, ids);
 
     const ws = XLSX.utils.json_to_sheet(
       data.map((r) => ({
         No: r.nomor,
         Tanggal: r.tanggal,
+        Kategori: r.kategori || "-",
         Keterangan: r.keterangan,
         Jumlah: r.jumlah,
         Satuan: r.satuan,
         "Harga Satuan": r.harga_satuan,
         "Harga Total": r.harga_total,
+        Supplier: r.supplier || "-",
+        Kontak: r.supplier_contact || "-",
         Catatan: r.catatan,
-      }))
+      })),
     );
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data Pembelian");
-
     const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -115,18 +157,11 @@ router.get("/purchases/export/excel", async (req, res) => {
 
 router.get("/purchases/export/pdf", async (req, res) => {
   try {
-    const parsed = GetPurchasesQueryParams.safeParse(req.query);
-    const search = parsed.success ? parsed.data.search : undefined;
-    const tanggal = parsed.success ? parsed.data.tanggal : undefined;
-
-    const conditions = [];
-    if (search) conditions.push(ilike(purchasesTable.keterangan, `%${search}%`));
-    if (tanggal) conditions.push(eq(purchasesTable.tanggal, tanggal));
-
-    const data =
-      conditions.length > 0
-        ? await db.select().from(purchasesTable).where(and(...conditions)).orderBy(purchasesTable.id)
-        : await db.select().from(purchasesTable).orderBy(purchasesTable.id);
+    const parsed = ExportPurchasesPdfQueryParams.safeParse(req.query);
+    const params = parsed.success ? parsed.data : {};
+    const conditions = buildPurchaseFilters(params);
+    const ids = params.ids ? params.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
+    const data = await queryPurchases(conditions, ids);
 
     const doc = new PDFDocument({ margin: 40, size: "A4", layout: "landscape" });
     res.setHeader("Content-Type", "application/pdf");
@@ -138,14 +173,15 @@ router.get("/purchases/export/pdf", async (req, res) => {
     doc.fontSize(10).font("Helvetica");
 
     const cols = [
-      { label: "No", key: "nomor", width: 60 },
-      { label: "Tanggal", key: "tanggal", width: 80 },
-      { label: "Keterangan", key: "keterangan", width: 150 },
-      { label: "Jumlah", key: "jumlah", width: 60 },
-      { label: "Satuan", key: "satuan", width: 60 },
-      { label: "Harga Satuan", key: "harga_satuan", width: 90 },
-      { label: "Harga Total", key: "harga_total", width: 90 },
-      { label: "Catatan", key: "catatan", width: 110 },
+      { label: "No", key: "nomor", width: 55 },
+      { label: "Tanggal", key: "tanggal", width: 70 },
+      { label: "Kategori", key: "kategori", width: 65 },
+      { label: "Keterangan", key: "keterangan", width: 120 },
+      { label: "Jumlah", key: "jumlah", width: 50 },
+      { label: "Satuan", key: "satuan", width: 50 },
+      { label: "Harga Sat.", key: "harga_satuan", width: 80 },
+      { label: "Total", key: "harga_total", width: 80 },
+      { label: "Supplier", key: "supplier", width: 80 },
     ];
 
     const tableTop = doc.y;
@@ -166,8 +202,8 @@ router.get("/purchases/export/pdf", async (req, res) => {
       const y = doc.y;
       x = 40;
       cols.forEach((col) => {
-        const val = String((row as Record<string, unknown>)[col.key] ?? "");
-        doc.text(val, x, y, { width: col.width });
+        const val = String((row as Record<string, unknown>)[col.key] ?? "-");
+        doc.text(val || "-", x, y, { width: col.width });
         x += col.width;
       });
       doc.moveDown(0.3);
@@ -234,12 +270,12 @@ router.put("/purchases/:id", async (req, res) => {
       return;
     }
 
-    const { nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, catatan } = bodyParsed.data;
+    const { nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, catatan, kategori, supplier, supplier_contact } = bodyParsed.data;
     const harga_total = jumlah * harga_satuan;
 
     const [updated] = await db
       .update(purchasesTable)
-      .set({ nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan })
+      .set({ nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan, kategori, supplier: supplier || null, supplier_contact: supplier_contact || null })
       .where(eq(purchasesTable.id, paramsParsed.data.id))
       .returning();
 
