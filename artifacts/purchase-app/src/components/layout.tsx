@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, LayoutDashboard, CalendarClock } from "lucide-react";
+import { ShoppingCart, LayoutDashboard, CalendarClock, Banknote, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -9,6 +9,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/pembelian", label: "Data Pembelian", icon: ShoppingCart },
     { href: "/rencana", label: "Rencana Pembelian", icon: CalendarClock },
+    { href: "/kas-masuk", label: "Kas Masuk", icon: Banknote },
+    { href: "/ai", label: "Asisten AI", icon: Sparkles },
   ];
 
   return (
@@ -40,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="flex-1 p-6 container mx-auto max-w-6xl">
+      <main className="flex-1 p-6 container mx-auto max-w-7xl">
         {children}
       </main>
     </div>

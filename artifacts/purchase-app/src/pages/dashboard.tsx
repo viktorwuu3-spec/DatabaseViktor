@@ -2,11 +2,13 @@ import { useGetDashboardSummary, useGetRecentActivity } from "@workspace/api-cli
 import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { ShoppingCart, CalendarClock, CreditCard, Wallet, Activity } from "lucide-react";
+import { ShoppingCart, CalendarClock, CreditCard, Wallet, Banknote, AlertTriangle } from "lucide-react";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary();
   const { data: activity, isLoading: isLoadingActivity } = useGetRecentActivity();
+
+  const sisaKasNegative = summary && summary.sisa_kas < 0;
 
   return (
     <Layout>
@@ -17,8 +19,8 @@ export default function Dashboard() {
         </div>
 
         {isLoadingSummary ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="h-[72px]" />
                 <CardContent className="h-[60px]" />
@@ -26,7 +28,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : summary ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Pembelian</CardTitle>
@@ -34,9 +36,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{summary.total_purchases}</div>
-                <p className="text-xs text-muted-foreground">
-                  {summary.this_month_purchases} bulan ini
-                </p>
+                <p className="text-xs text-muted-foreground">{summary.this_month_purchases} bulan ini</p>
               </CardContent>
             </Card>
             <Card>
@@ -46,18 +46,16 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{summary.total_purchase_plans}</div>
-                <p className="text-xs text-muted-foreground">
-                  {summary.this_month_plans} bulan ini
-                </p>
+                <p className="text-xs text-muted-foreground">{summary.this_month_plans} bulan ini</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Pengeluaran</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <CreditCard className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(summary.total_spend)}</div>
+                <div className="text-2xl font-bold text-red-600">{formatCurrency(summary.total_spend)}</div>
               </CardContent>
             </Card>
             <Card>
@@ -67,6 +65,27 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(summary.total_planned)}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Kas Masuk</CardTitle>
+                <Banknote className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-700">{formatCurrency(summary.total_kas_masuk)}</div>
+              </CardContent>
+            </Card>
+            <Card className={sisaKasNegative ? "border-red-300 bg-red-50" : ""}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Sisa Kas</CardTitle>
+                {sisaKasNegative ? <AlertTriangle className="h-4 w-4 text-red-500" /> : <Wallet className="h-4 w-4 text-blue-600" />}
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold ${sisaKasNegative ? "text-red-600" : "text-blue-700"}`}>
+                  {formatCurrency(summary.sisa_kas)}
+                </div>
+                {sisaKasNegative && <p className="text-xs text-red-500 mt-1">Peringatan: Saldo kas minus!</p>}
               </CardContent>
             </Card>
           </div>
@@ -100,9 +119,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Belum ada data pembelian
-                </div>
+                <div className="text-center py-8 text-muted-foreground text-sm">Belum ada data pembelian</div>
               )}
             </CardContent>
           </Card>
@@ -134,9 +151,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Belum ada data rencana
-                </div>
+                <div className="text-center py-8 text-muted-foreground text-sm">Belum ada data rencana</div>
               )}
             </CardContent>
           </Card>

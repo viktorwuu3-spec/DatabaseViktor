@@ -2,7 +2,7 @@
 
 ## Overview
 
-Full-stack purchase management web application (Manajemen Pembelian). A personal tool for recording purchase transactions and managing purchase plans in Indonesian.
+Full-stack purchase management web application (Manajemen Pembelian). A personal tool for recording purchase transactions, managing purchase plans, tracking cash inflows, and using AI-assisted data entry — all in Indonesian.
 
 ## Stack
 
@@ -16,6 +16,7 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 - **Frontend**: React 19 + Vite + Tailwind CSS + shadcn/ui + wouter
+- **AI**: OpenAI via Replit AI Integrations (gpt-4o-mini)
 
 ## Artifacts
 
@@ -25,23 +26,24 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 ## Application Features
 
 ### Frontend pages (`artifacts/purchase-app`)
-- **Dashboard** (`/`) — Summary stats (total purchases/plans, spend/planned amounts, monthly counts) + recent activity feed
-- **Data Pembelian** (`/pembelian`) — Full CRUD for purchases with search, date-range filter, kategori filter, checkbox selection, selective export/print/delete, export to Excel/PDF, print with signature section (Dibuat/Diketahui)
-- **Rencana Pembelian** (`/rencana`) — Full CRUD for purchase plans with same features, print shows Diajukan/Disetujui signature
+- **Dashboard** (`/`) — Summary stats (6 cards: purchases, plans, spend, planned, kas masuk, sisa kas) + recent activity feed. Shows negative cash warning.
+- **Data Pembelian** (`/pembelian`) — Full CRUD for purchases with search, date-range filter, kategori filter, checkbox selection, selective export/print/delete, export to Excel/PDF, print with signature section
+- **Rencana Pembelian** (`/rencana`) — Full CRUD for purchase plans with same features
+- **Kas Masuk** (`/kas-masuk`) — Full CRUD for cash inflows with dynamic calculation of total_kas_masuk, total_pengeluaran, sisa_kas. Shows negative cash warning with red card.
+- **Asisten AI** (`/ai`) — Chat interface for natural language commands to manage data (create/read/delete/summary)
 
 ### Backend API (`artifacts/api-server`)
 - `GET/POST /api/purchases` — list (with search, startDate/endDate, kategori filter) and create purchases
 - `GET/PUT/DELETE /api/purchases/:id` — single purchase operations
-- `POST /api/purchases/bulk-delete` — bulk delete with `{ ids: number[] }`
-- `GET /api/purchases/export/excel` — Excel export (xlsx), supports `ids` param for selective export
-- `GET /api/purchases/export/pdf` — PDF export (pdfkit), supports `ids` param
-- `GET/POST /api/purchase-plans` — list and create purchase plans (same filters as purchases)
-- `GET/PUT/DELETE /api/purchase-plans/:id` — single plan operations
-- `POST /api/purchase-plans/bulk-delete` — bulk delete
-- `GET /api/purchase-plans/export/excel` — Excel export
-- `GET /api/purchase-plans/export/pdf` — PDF export
-- `GET /api/dashboard/summary` — Dashboard stats
+- `POST /api/purchases/bulk-delete` — bulk delete
+- `GET /api/purchases/export/excel|pdf` — exports with selective ids
+- `GET/POST /api/purchase-plans` — same as purchases
+- `GET/PUT/DELETE /api/purchase-plans/:id`, `/bulk-delete`, `/export/*`
+- `GET/POST /api/cash-in` — list (with dynamic cash totals) and create
+- `PUT/DELETE /api/cash-in/:id`, `/bulk-delete`, `/export/*`
+- `GET /api/dashboard/summary` — Dashboard stats including cash totals
 - `GET /api/dashboard/recent` — Recent 5 purchases and plans
+- `POST /api/ai-command` — AI assistant endpoint (natural language to structured actions)
 - `POST /api/backup` — Create PostgreSQL backup (pg_dump)
 - `GET /api/backups` — List available backups
 - `GET /api/backup/download/:filename` — Download specific backup
@@ -49,16 +51,21 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 ### Database schema (`lib/db/src/schema/`)
 - `purchases` table: id, nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan, kategori, supplier, supplier_contact
 - `purchase_plans` table: same fields as purchases
+- `cash_in` table: id, nomor, tanggal, keterangan, jumlah_kas_masuk
 - `harga_total` is auto-calculated server-side: `jumlah × harga_satuan`
-- `kategori` — not-null with default "" (predefined options: ATK, Konsumsi, Operasional, Lainnya)
-- `supplier` — nullable, optional
-- `supplier_contact` — nullable, optional
+- Cash totals dynamically calculated: `total_kas_masuk = SUM(cash_in.jumlah_kas_masuk)`, `sisa_kas = total_kas_masuk - SUM(purchases.harga_total)`
 
 ### Backup system
 - Daily automated backup via `node-cron` (midnight)
 - Manual backup via `POST /api/backup`
 - Keeps last 7 backups, auto-cleanup on new backup
 - Backups stored in `backups/` directory relative to api-server cwd
+
+### AI Assistant
+- Uses OpenAI gpt-4o-mini via Replit AI Integrations (no API key needed, billed to credits)
+- Supports: create, read, delete, summary actions on all 3 tables
+- Validates all AI-generated actions before execution
+- Indonesian language responses
 
 ## Key Commands
 
@@ -72,6 +79,7 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 
 - `pdfkit` + `xlsx` — server-side export (externalized in esbuild config)
 - `node-cron` — daily backup scheduling (externalized in esbuild config)
+- `openai` — AI assistant SDK (externalized in esbuild config)
 - `@workspace/api-client-react` — generated React Query hooks
 - `@workspace/api-zod` — generated Zod schemas
 - `wouter` — client-side routing

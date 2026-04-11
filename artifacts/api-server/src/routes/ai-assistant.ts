@@ -73,16 +73,23 @@ function validateAction(action: AiAction): string | null {
   }
 
   const validTables = ["cash_in", "purchases", "purchase_plans"];
-  if (action.action !== "summary" && action.table && !validTables.includes(action.table)) {
-    return `Tabel "${action.table}" tidak dikenal`;
+  if (action.action !== "summary") {
+    if (!action.table) {
+      return "Tabel harus ditentukan untuk operasi ini";
+    }
+    if (!validTables.includes(action.table)) {
+      return `Tabel "${action.table}" tidak dikenal`;
+    }
   }
 
   if (action.action === "create" && !action.data) {
     return "Data tidak ditemukan untuk operasi create";
   }
 
-  if (action.action === "delete" && !action.id) {
-    return "ID tidak ditemukan untuk operasi delete";
+  if (action.action === "delete") {
+    if (!action.id || typeof action.id !== "number" || action.id <= 0) {
+      return "ID harus berupa angka positif untuk operasi delete";
+    }
   }
 
   return null;

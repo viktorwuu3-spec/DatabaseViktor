@@ -6,6 +6,8 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Purchases from "@/pages/purchases";
 import PurchasePlans from "@/pages/purchase-plans";
+import KasMasuk from "@/pages/kas-masuk";
+import AiAssistant from "@/pages/ai-assistant";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +17,8 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/pembelian" component={Purchases} />
       <Route path="/rencana" component={PurchasePlans} />
+      <Route path="/kas-masuk" component={KasMasuk} />
+      <Route path="/ai" component={AiAssistant} />
       <Route component={NotFound} />
     </Switch>
   );
