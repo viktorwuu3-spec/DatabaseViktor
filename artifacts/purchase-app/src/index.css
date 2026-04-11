@@ -214,6 +214,8 @@
     background: white !important;
     color: black !important;
     font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .print-hide {
@@ -224,13 +226,19 @@
     display: block !important;
   }
 
+  td.print-only,
+  th.print-only {
+    display: table-cell !important;
+  }
+
   @page {
-    margin: 1.5cm;
+    margin: 1cm 1.2cm;
     size: landscape;
   }
 
   table {
     width: 100% !important;
+    table-layout: fixed !important;
     border-collapse: collapse !important;
     font-size: 8pt !important;
   }
@@ -243,14 +251,18 @@
     text-align: left !important;
     border: 1px solid #1e40af !important;
     font-size: 8pt !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
   }
 
   td {
-    padding: 4px 8px !important;
+    padding: 5px 8px !important;
     border: 1px solid #d1d5db !important;
     color: black !important;
     font-size: 8pt !important;
-    vertical-align: top !important;
+    vertical-align: middle !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
   }
 
   tr:nth-child(even) td {
@@ -281,6 +293,11 @@
     color: white !important;
     font-weight: bold !important;
     font-size: 9pt !important;
+  }
+
+  .print-grand-total {
+    display: block !important;
+    page-break-inside: avoid !important;
   }
 }
 

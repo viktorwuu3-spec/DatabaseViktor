@@ -369,16 +369,16 @@ export default function PurchasePlans() {
                         data-testid="checkbox-select-all"
                       />
                     </TableHead>
-                    <TableHead className="print-only w-[45px] text-center">No</TableHead>
-                    <TableHead className="w-[80px]">Nomor</TableHead>
-                    <TableHead className="w-[100px]">Tanggal</TableHead>
-                    <TableHead className="w-[80px]">Kategori</TableHead>
-                    <TableHead>Keterangan</TableHead>
-                    <TableHead className="text-right">Jml</TableHead>
-                    <TableHead>Satuan</TableHead>
-                    <TableHead className="text-right">Harga Sat.</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead>Supplier</TableHead>
+                    <TableHead className="print-only w-[45px] text-center print:w-[4%]">No.</TableHead>
+                    <TableHead className="w-[80px] print:w-[8%]">Nomor</TableHead>
+                    <TableHead className="w-[100px] print:w-[10%]">Tanggal</TableHead>
+                    <TableHead className="w-[80px] print:w-[8%]">Kategori</TableHead>
+                    <TableHead className="print:w-[22%]">Keterangan</TableHead>
+                    <TableHead className="text-right print:w-[4%]">Jml</TableHead>
+                    <TableHead className="print:w-[6%]">Satuan</TableHead>
+                    <TableHead className="text-right print:w-[12%]">Harga Sat.</TableHead>
+                    <TableHead className="text-right print:w-[12%]">Total</TableHead>
+                    <TableHead className="print:w-[14%]">Supplier</TableHead>
                     <TableHead className="w-[80px] text-center print-hide">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -449,8 +449,8 @@ export default function PurchasePlans() {
             </div>
 
             {plans && plans.length > 0 && (
-              <div className="flex justify-end mt-2 border rounded-md overflow-hidden">
-                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center">
+              <div className="print-grand-total flex justify-end mt-2 border rounded-md overflow-hidden print:border-0 print:mt-1">
+                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center print:bg-[#1e40af] print:text-white print:w-full print:justify-end print:text-[9pt] print:py-1.5 print:px-3 print:rounded-none">
                   <span>GRAND TOTAL</span>
                   <span>{formatCurrency(totalHarga)}</span>
                 </div>

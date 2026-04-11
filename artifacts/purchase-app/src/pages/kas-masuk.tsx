@@ -345,11 +345,11 @@ export default function KasMasuk() {
                     <TableHead className="w-[40px] print-hide">
                       <input type="checkbox" checked={!!allSelected} onChange={toggleSelectAll} className="h-4 w-4 rounded border-gray-300" />
                     </TableHead>
-                    <TableHead className="print-only w-[45px] text-center">No</TableHead>
-                    <TableHead>Nomor</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Keterangan</TableHead>
-                    <TableHead className="text-right">Jumlah Kas Masuk</TableHead>
+                    <TableHead className="print-only w-[45px] text-center print:w-[6%]">No.</TableHead>
+                    <TableHead className="print:w-[15%]">Nomor</TableHead>
+                    <TableHead className="print:w-[18%]">Tanggal</TableHead>
+                    <TableHead className="print:w-[36%]">Keterangan</TableHead>
+                    <TableHead className="text-right print:w-[25%]">Jumlah Kas Masuk</TableHead>
                     <TableHead className="w-[80px] text-center print-hide">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -387,8 +387,8 @@ export default function KasMasuk() {
             </div>
 
             {cashInData?.items && cashInData.items.length > 0 && (
-              <div className="flex justify-end mt-2 border rounded-md overflow-hidden">
-                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center">
+              <div className="print-grand-total flex justify-end mt-2 border rounded-md overflow-hidden print:border-0 print:mt-1">
+                <div className="bg-primary text-primary-foreground font-bold text-sm px-6 py-2 flex gap-8 items-center print:bg-[#1e40af] print:text-white print:w-full print:justify-end print:text-[9pt] print:py-1.5 print:px-3 print:rounded-none">
                   <span>TOTAL KAS MASUK</span>
                   <span>{formatCurrency(cashInData.total_kas_masuk)}</span>
                 </div>
