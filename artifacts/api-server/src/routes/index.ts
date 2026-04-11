@@ -6,6 +6,8 @@ import cashInRouter from "./cash-in";
 import dashboardRouter from "./dashboard";
 import backupRouter from "./backup";
 import aiAssistantRouter from "./ai-assistant";
+import invoicesRouter from "./invoices";
+import financialSummaryRouter from "./financial-summary";
 
 const router: IRouter = Router();
 
@@ -16,5 +18,7 @@ router.use(cashInRouter);
 router.use(dashboardRouter);
 router.use(backupRouter);
 router.use(aiAssistantRouter);
+router.use("/invoices", invoicesRouter);
+router.use(financialSummaryRouter);
 
 export default router;

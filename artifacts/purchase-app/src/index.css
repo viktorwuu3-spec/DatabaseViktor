@@ -304,3 +304,11 @@
 .print-only {
   display: none;
 }
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: -1px;
+  transition: outline 0.15s ease-in-out;
+}

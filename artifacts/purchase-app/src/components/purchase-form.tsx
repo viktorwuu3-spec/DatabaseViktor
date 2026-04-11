@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { PurchaseInput } from "@workspace/api-client-react";
+import { useFormNavigation } from "@/hooks/use-form-navigation";
 import {
   Form,
   FormControl,
@@ -104,6 +105,12 @@ export function PurchaseForm({
     });
   };
 
+  const triggerSubmit = useCallback(() => {
+    form.handleSubmit(handleSubmit)();
+  }, [form, handleSubmit]);
+
+  const { formRef, handleKeyDown } = useFormNavigation(triggerSubmit);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -116,6 +123,7 @@ export function PurchaseForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
+            <div ref={formRef} onKeyDown={handleKeyDown}>
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -301,6 +309,7 @@ export function PurchaseForm({
               )}
             />
 
+            </div>
             <DialogFooter>
               <Button
                 type="button"

@@ -513,3 +513,169 @@ export const ListBackupsResponse = zod.array(ListBackupsResponseItem);
 export const DownloadBackupParams = zod.object({
   filename: zod.coerce.string(),
 });
+
+/**
+ * @summary Get all invoices
+ */
+export const GetInvoicesQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+});
+
+export const GetInvoicesResponseItem = zod.object({
+  id: zod.number(),
+  nomor_invoice: zod.string(),
+  tanggal: zod.string(),
+  pelanggan: zod.string(),
+  kontak_pelanggan: zod.string(),
+  keterangan: zod.string(),
+  catatan: zod.string(),
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      invoice_id: zod.number(),
+      nama_item: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+      total_item: zod.number(),
+    }),
+  ),
+  total_invoice: zod.number(),
+});
+export const GetInvoicesResponse = zod.array(GetInvoicesResponseItem);
+
+/**
+ * @summary Create new invoice
+ */
+export const CreateInvoiceBody = zod.object({
+  nomor_invoice: zod.string(),
+  tanggal: zod.string(),
+  pelanggan: zod.string(),
+  kontak_pelanggan: zod.string().optional(),
+  keterangan: zod.string().optional(),
+  catatan: zod.string().optional(),
+  items: zod.array(
+    zod.object({
+      nama_item: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get invoice by ID
+ */
+export const GetInvoiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetInvoiceResponse = zod.object({
+  id: zod.number(),
+  nomor_invoice: zod.string(),
+  tanggal: zod.string(),
+  pelanggan: zod.string(),
+  kontak_pelanggan: zod.string(),
+  keterangan: zod.string(),
+  catatan: zod.string(),
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      invoice_id: zod.number(),
+      nama_item: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+      total_item: zod.number(),
+    }),
+  ),
+  total_invoice: zod.number(),
+});
+
+/**
+ * @summary Update invoice
+ */
+export const UpdateInvoiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateInvoiceBody = zod.object({
+  nomor_invoice: zod.string(),
+  tanggal: zod.string(),
+  pelanggan: zod.string(),
+  kontak_pelanggan: zod.string().optional(),
+  keterangan: zod.string().optional(),
+  catatan: zod.string().optional(),
+  items: zod.array(
+    zod.object({
+      nama_item: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+    }),
+  ),
+});
+
+export const UpdateInvoiceResponse = zod.object({
+  id: zod.number(),
+  nomor_invoice: zod.string(),
+  tanggal: zod.string(),
+  pelanggan: zod.string(),
+  kontak_pelanggan: zod.string(),
+  keterangan: zod.string(),
+  catatan: zod.string(),
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      invoice_id: zod.number(),
+      nama_item: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+      total_item: zod.number(),
+    }),
+  ),
+  total_invoice: zod.number(),
+});
+
+/**
+ * @summary Delete invoice
+ */
+export const DeleteInvoiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteInvoiceResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Bulk delete invoices
+ */
+export const BulkDeleteInvoicesBody = zod.object({
+  ids: zod.array(zod.number()),
+});
+
+export const BulkDeleteInvoicesResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Export single invoice as PDF
+ */
+export const ExportSingleInvoicePdfParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get financial summary (pengeluaran, kas masuk, saldo)
+ */
+export const GetFinancialSummaryResponse = zod.object({
+  total_pengeluaran: zod.number(),
+  total_kas_masuk: zod.number(),
+  saldo_akhir: zod.number(),
+  kekurangan_dana: zod.number(),
+});

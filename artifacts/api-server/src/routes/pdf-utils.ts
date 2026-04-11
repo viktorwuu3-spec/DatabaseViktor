@@ -33,6 +33,7 @@ interface PdfReportOptions {
   columns: Column[];
   data: Record<string, unknown>[];
   summaryLines?: string[];
+  footerSummaryLines?: string[];
   totalLabel?: string;
   totalValue?: string;
   totalColumnIndex?: number;
@@ -44,6 +45,7 @@ interface PdfReportOptions {
 export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument {
   const {
     title, subtitle, columns: rawColumns, data, summaryLines,
+    footerSummaryLines,
     totalLabel, totalValue, totalColumnIndex,
     signatureLeft, signatureRight,
     layout = "landscape",
@@ -227,6 +229,37 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
     doc.text("Tanggal: _______________", pageWidth - marginRight - 180, y);
   }
 
+  function drawFooterSummary(y: number): number {
+    if (!footerSummaryLines || footerSummaryLines.length === 0) return y;
+
+    if (y + footerSummaryLines.length * 14 + 20 > pageBottom) {
+      doc.addPage();
+      y = 40;
+    }
+
+    y += 12;
+    doc.fontSize(9).font("Helvetica-Bold").fillColor("black");
+    footerSummaryLines.forEach((line) => {
+      if (line.startsWith("─")) {
+        doc.font("Helvetica").fontSize(7);
+        doc.text(line, marginLeft + 10, y, { width: 300 });
+      } else if (line.includes("Kekurangan Dana")) {
+        doc.font("Helvetica-Bold").fontSize(9).fillColor("#dc2626");
+        doc.text(line, marginLeft + 10, y, { width: 300 });
+        doc.fillColor("black");
+      } else if (line.includes("Saldo Akhir")) {
+        doc.font("Helvetica-Bold").fontSize(9);
+        doc.text(line, marginLeft + 10, y, { width: 300 });
+      } else {
+        doc.font("Helvetica").fontSize(9);
+        doc.text(line, marginLeft + 10, y, { width: 300 });
+      }
+      y += 14;
+    });
+
+    return y;
+  }
+
   function addPageNumber() {
     const totalPages = doc.bufferedPageRange().count;
     for (let i = 0; i < totalPages; i++) {
@@ -258,6 +291,7 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
   });
 
   currentY = drawTotalRow(currentY);
+  currentY = drawFooterSummary(currentY);
   drawSignature(currentY);
   addPageNumber();
 

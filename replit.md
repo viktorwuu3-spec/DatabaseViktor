@@ -30,6 +30,7 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - **Data Pembelian** (`/pembelian`) — Full CRUD for purchases with search, date-range filter, kategori filter, checkbox selection, selective export/print/delete, export to Excel/PDF, print with signature section
 - **Rencana Pembelian** (`/rencana`) — Full CRUD for purchase plans with same features
 - **Kas Masuk** (`/kas-masuk`) — Full CRUD for cash inflows with dynamic calculation of total_kas_masuk, total_pengeluaran, sisa_kas. Shows negative cash warning with red card.
+- **Invoice / Memo** (`/invoice`) — Full CRUD for invoices with dynamic item rows, auto-calculated totals, single invoice PDF (with signature), list PDF/Excel export, bulk delete, search.
 - **Asisten AI** (`/ai`) — Chat interface for natural language commands to manage data (create/read/delete/summary)
 
 ### Backend API (`artifacts/api-server`)
@@ -43,6 +44,12 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `PUT/DELETE /api/cash-in/:id`, `/bulk-delete`, `/export/*`
 - `GET /api/dashboard/summary` — Dashboard stats including cash totals
 - `GET /api/dashboard/recent` — Recent 5 purchases and plans
+- `GET/POST /api/invoices` — list (with search) and create invoices with items (transactional)
+- `GET/PUT/DELETE /api/invoices/:id` — single invoice operations (transactional)
+- `POST /api/invoices/bulk-delete` — bulk delete invoices (transactional)
+- `GET /api/invoices/export/excel|pdf` — list exports
+- `GET /api/invoices/:id/pdf` — single invoice PDF with signature
+- `GET /api/financial-summary` — total_pengeluaran, total_kas_masuk, saldo_akhir, kekurangan_dana
 - `POST /api/ai-command` — AI assistant endpoint (natural language to structured actions)
 - `POST /api/backup` — Create PostgreSQL backup (pg_dump)
 - `GET /api/backups` — List available backups
@@ -52,6 +59,8 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `purchases` table: id, nomor, tanggal, keterangan, jumlah, satuan, harga_satuan, harga_total, catatan, kategori, supplier, supplier_contact
 - `purchase_plans` table: same fields as purchases
 - `cash_in` table: id, nomor, tanggal, keterangan, jumlah_kas_masuk
+- `invoices` table: id, nomor_invoice, tanggal, pelanggan, kontak_pelanggan, keterangan, catatan
+- `invoice_items` table: id, invoice_id (FK), nama_item, jumlah, satuan, harga_satuan
 - `harga_total` is auto-calculated server-side: `jumlah × harga_satuan`
 - Cash totals dynamically calculated: `total_kas_masuk = SUM(cash_in.jumlah_kas_masuk)`, `sisa_kas = total_kas_masuk - SUM(purchases.harga_total)`
 
@@ -84,5 +93,17 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `@workspace/api-zod` — generated Zod schemas
 - `wouter` — client-side routing
 - `react-hook-form` + `@hookform/resolvers/zod` — form management
+
+### Enter key form navigation
+- `useFormNavigation` hook (`src/hooks/use-form-navigation.ts`) enables Enter key navigation between form fields
+- Applied to purchase form, kas masuk form, and invoice form
+- Textarea: Enter = next field, Shift+Enter = newline
+- Last field Enter triggers form submit
+- Skips hidden/disabled fields automatically
+
+### Financial summary in reports
+- PDF exports for purchases and purchase-plans include financial summary footer (total pengeluaran, total kas masuk, saldo akhir, kekurangan dana)
+- `/api/financial-summary` endpoint provides dynamic financial calculations
+- Negative cash balance highlighted in red
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

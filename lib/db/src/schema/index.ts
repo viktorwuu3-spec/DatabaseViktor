@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, real, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -57,3 +57,34 @@ export const insertPurchasePlanSchema = createInsertSchema(
 ).omit({ id: true });
 export type InsertPurchasePlan = z.infer<typeof insertPurchasePlanSchema>;
 export type PurchasePlan = typeof purchasePlansTable.$inferSelect;
+
+export const invoicesTable = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  nomor_invoice: text("nomor_invoice").notNull(),
+  tanggal: text("tanggal").notNull(),
+  pelanggan: text("pelanggan").notNull(),
+  kontak_pelanggan: text("kontak_pelanggan").notNull().default(""),
+  keterangan: text("keterangan").notNull().default(""),
+  catatan: text("catatan").notNull().default(""),
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoicesTable).omit({
+  id: true,
+});
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoicesTable.$inferSelect;
+
+export const invoiceItemsTable = pgTable("invoice_items", {
+  id: serial("id").primaryKey(),
+  invoice_id: integer("invoice_id").notNull(),
+  nama_item: text("nama_item").notNull(),
+  jumlah: real("jumlah").notNull(),
+  satuan: text("satuan").notNull().default("pcs"),
+  harga_satuan: real("harga_satuan").notNull(),
+});
+
+export const insertInvoiceItemSchema = createInsertSchema(invoiceItemsTable).omit({
+  id: true,
+});
+export type InsertInvoiceItem = z.infer<typeof insertInvoiceItemSchema>;
+export type InvoiceItem = typeof invoiceItemsTable.$inferSelect;

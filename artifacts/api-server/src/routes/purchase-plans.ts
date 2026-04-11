@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
-import { purchasePlansTable } from "@workspace/db";
-import { eq, ilike, and, gte, lte, inArray, or } from "drizzle-orm";
+import { purchasePlansTable, cashInTable } from "@workspace/db";
+import { eq, ilike, and, gte, lte, inArray, or, sql } from "drizzle-orm";
 import {
   CreatePurchasePlanBody,
   UpdatePurchasePlanBody,
@@ -165,6 +165,22 @@ router.get("/purchase-plans/export/pdf", async (req, res) => {
 
     const grandTotal = data.reduce((sum, r) => sum + (r.harga_total ?? 0), 0);
 
+    const [cashInResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${cashInTable.jumlah_kas_masuk}), 0)` })
+      .from(cashInTable);
+    const totalKasMasuk = Number(cashInResult.total) || 0;
+    const saldoAkhir = totalKasMasuk - grandTotal;
+
+    const summaryLines = [
+      `Total Pengajuan: ${formatRupiah(grandTotal)}`,
+      `Total Kas Masuk: ${formatRupiah(totalKasMasuk)}`,
+      `─────────────────────────`,
+      `Saldo Akhir: ${formatRupiah(saldoAkhir)}`,
+    ];
+    if (saldoAkhir < 0) {
+      summaryLines.push(`Kekurangan Dana: ${formatRupiah(Math.abs(saldoAkhir))}`);
+    }
+
     const doc = generatePdfReport({
       title: "LAPORAN RENCANA PEMBELIAN",
       subtitle: `Total ${data.length} rencana`,
@@ -185,6 +201,7 @@ router.get("/purchase-plans/export/pdf", async (req, res) => {
       totalLabel: "GRAND TOTAL",
       totalValue: formatRupiah(grandTotal),
       totalColumnIndex: 8,
+      footerSummaryLines: summaryLines,
       signatureLeft: "Diajukan oleh,",
       signatureRight: "Disetujui oleh,",
     });

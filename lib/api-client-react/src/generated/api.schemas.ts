@@ -138,6 +138,52 @@ export interface BackupFile {
   created: string;
 }
 
+export interface InvoiceItem {
+  id: number;
+  invoice_id: number;
+  nama_item: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+  total_item: number;
+}
+
+export interface InvoiceItemInput {
+  nama_item: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+}
+
+export interface InvoiceWithItems {
+  id: number;
+  nomor_invoice: string;
+  tanggal: string;
+  pelanggan: string;
+  kontak_pelanggan: string;
+  keterangan: string;
+  catatan: string;
+  items: InvoiceItem[];
+  total_invoice: number;
+}
+
+export interface InvoiceInput {
+  nomor_invoice: string;
+  tanggal: string;
+  pelanggan: string;
+  kontak_pelanggan?: string;
+  keterangan?: string;
+  catatan?: string;
+  items: InvoiceItemInput[];
+}
+
+export interface FinancialSummary {
+  total_pengeluaran: number;
+  total_kas_masuk: number;
+  saldo_akhir: number;
+  kekurangan_dana: number;
+}
+
 export type GetPurchasesParams = {
   search?: string;
   startDate?: string;
@@ -220,4 +266,8 @@ export type ExportCashInPdfParams = {
    * Comma-separated IDs for selective export
    */
   ids?: string;
+};
+
+export type GetInvoicesParams = {
+  search?: string;
 };

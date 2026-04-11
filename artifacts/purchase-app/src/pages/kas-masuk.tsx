@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Layout } from "@/components/layout";
+import { useFormNavigation } from "@/hooks/use-form-navigation";
 import {
   useGetCashInList,
   getGetCashInListQueryKey,
@@ -134,6 +135,12 @@ export default function KasMasuk() {
     queryClient.invalidateQueries({ queryKey: getGetCashInListQueryKey() });
     queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
   };
+
+  const triggerSubmit = useCallback(() => {
+    form.handleSubmit(handleSubmit)();
+  }, [form, editingItem]);
+
+  const { formRef: kasFormRef, handleKeyDown: kasHandleKeyDown } = useFormNavigation(triggerSubmit);
 
   const handleSubmit = (values: FormValues) => {
     const data: CashInInput = {
@@ -420,6 +427,7 @@ export default function KasMasuk() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <div ref={kasFormRef} onKeyDown={kasHandleKeyDown}>
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="nomor" render={({ field }) => (
                   <FormItem><FormLabel>Nomor</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -434,6 +442,7 @@ export default function KasMasuk() {
               <FormField control={form.control} name="jumlah_kas_masuk" render={({ field }) => (
                 <FormItem><FormLabel>Jumlah Kas Masuk</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
+              </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>Batal</Button>
                 <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>

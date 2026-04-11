@@ -8,6 +8,7 @@ import Purchases from "@/pages/purchases";
 import PurchasePlans from "@/pages/purchase-plans";
 import KasMasuk from "@/pages/kas-masuk";
 import AiAssistant from "@/pages/ai-assistant";
+import InvoicePage from "@/pages/invoice";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/pembelian" component={Purchases} />
       <Route path="/rencana" component={PurchasePlans} />
       <Route path="/kas-masuk" component={KasMasuk} />
+      <Route path="/invoice" component={InvoicePage} />
       <Route path="/ai" component={AiAssistant} />
       <Route component={NotFound} />
     </Switch>
