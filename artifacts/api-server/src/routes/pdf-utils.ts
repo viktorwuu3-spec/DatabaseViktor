@@ -43,7 +43,7 @@ interface PdfReportOptions {
 
 export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument {
   const {
-    title, subtitle, columns, data, summaryLines,
+    title, subtitle, columns: rawColumns, data, summaryLines,
     totalLabel, totalValue, totalColumnIndex,
     signatureLeft, signatureRight,
     layout = "landscape",
@@ -67,7 +67,15 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
   const headerHeight = 24;
   const padding = 5;
 
-  const tableWidth = columns.reduce((sum, col) => sum + col.width, 0);
+  const rawTableWidth = rawColumns.reduce((sum, col) => sum + col.width, 0);
+  const scaleFactor = usableWidth / rawTableWidth;
+  const columns = rawColumns.map((col) => ({ ...col, width: Math.round(col.width * scaleFactor) }));
+  const widthDiff = usableWidth - columns.reduce((sum, col) => sum + col.width, 0);
+  if (widthDiff !== 0) {
+    const largest = columns.reduce((max, col, i) => (col.width > columns[max].width ? i : max), 0);
+    columns[largest].width += widthDiff;
+  }
+  const tableWidth = usableWidth;
   const tableLeft = marginLeft;
   const tableRight = tableLeft + tableWidth;
 

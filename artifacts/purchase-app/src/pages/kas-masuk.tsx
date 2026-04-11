@@ -345,7 +345,7 @@ export default function KasMasuk() {
                     <TableHead className="w-[40px] print-hide">
                       <input type="checkbox" checked={!!allSelected} onChange={toggleSelectAll} className="h-4 w-4 rounded border-gray-300" />
                     </TableHead>
-                    <TableHead className="print-only w-[30px]">No</TableHead>
+                    <TableHead className="print-only w-[45px] text-center">No</TableHead>
                     <TableHead>Nomor</TableHead>
                     <TableHead>Tanggal</TableHead>
                     <TableHead>Keterangan</TableHead>

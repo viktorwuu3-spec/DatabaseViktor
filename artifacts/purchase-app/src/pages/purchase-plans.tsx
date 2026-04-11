@@ -369,7 +369,7 @@ export default function PurchasePlans() {
                         data-testid="checkbox-select-all"
                       />
                     </TableHead>
-                    <TableHead className="print-only w-[30px]">No</TableHead>
+                    <TableHead className="print-only w-[45px] text-center">No</TableHead>
                     <TableHead className="w-[80px]">Nomor</TableHead>
                     <TableHead className="w-[100px]">Tanggal</TableHead>
                     <TableHead className="w-[80px]">Kategori</TableHead>
