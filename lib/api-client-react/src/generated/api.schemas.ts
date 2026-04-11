@@ -8,3 +8,80 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export interface DeleteResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface Purchase {
+  id: number;
+  nomor: string;
+  tanggal: string;
+  keterangan: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+  harga_total: number;
+  catatan: string;
+}
+
+export interface PurchaseInput {
+  nomor: string;
+  tanggal: string;
+  keterangan: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+  catatan: string;
+}
+
+export interface PurchasePlan {
+  id: number;
+  nomor: string;
+  tanggal: string;
+  keterangan: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+  harga_total: number;
+  catatan: string;
+}
+
+export interface PurchasePlanInput {
+  nomor: string;
+  tanggal: string;
+  keterangan: string;
+  jumlah: number;
+  satuan: string;
+  harga_satuan: number;
+  catatan: string;
+}
+
+export interface DashboardSummary {
+  total_purchases: number;
+  total_purchase_plans: number;
+  total_spend: number;
+  total_planned: number;
+  this_month_purchases: number;
+  this_month_plans: number;
+}
+
+export interface RecentActivity {
+  recent_purchases: Purchase[];
+  recent_plans: PurchasePlan[];
+}
+
+export type GetPurchasesParams = {
+  search?: string;
+  tanggal?: string;
+};
+
+export type GetPurchasePlansParams = {
+  search?: string;
+  tanggal?: string;
+};

@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: purchases
+    description: Purchase data operations
+  - name: purchase-plans
+    description: Purchase plan operations
+  - name: dashboard
+    description: Dashboard and summary operations
 paths:
   /healthz:
     get:
@@ -24,6 +30,273 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /purchases:
+    get:
+      operationId: getPurchases
+      tags: [purchases]
+      summary: Get all purchases
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of purchases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Purchase"
+    post:
+      operationId: createPurchase
+      tags: [purchases]
+      summary: Create a new purchase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseInput"
+      responses:
+        "201":
+          description: Created purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purchase"
+
+  /purchases/{id}:
+    get:
+      operationId: getPurchase
+      tags: [purchases]
+      summary: Get a purchase by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purchase"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updatePurchase
+      tags: [purchases]
+      summary: Update a purchase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseInput"
+      responses:
+        "200":
+          description: Updated purchase
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purchase"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deletePurchase
+      tags: [purchases]
+      summary: Delete a purchase
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /purchase-plans:
+    get:
+      operationId: getPurchasePlans
+      tags: [purchase-plans]
+      summary: Get all purchase plans
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of purchase plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchasePlan"
+    post:
+      operationId: createPurchasePlan
+      tags: [purchase-plans]
+      summary: Create a new purchase plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchasePlanInput"
+      responses:
+        "201":
+          description: Created purchase plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchasePlan"
+
+  /purchase-plans/{id}:
+    get:
+      operationId: getPurchasePlan
+      tags: [purchase-plans]
+      summary: Get a purchase plan by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Purchase plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchasePlan"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updatePurchasePlan
+      tags: [purchase-plans]
+      summary: Update a purchase plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchasePlanInput"
+      responses:
+        "200":
+          description: Updated purchase plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchasePlan"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deletePurchasePlan
+      tags: [purchase-plans]
+      summary: Delete a purchase plan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent purchases and plans
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentActivity"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +307,175 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
+
+    Purchase:
+      type: object
+      properties:
+        id:
+          type: integer
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah:
+          type: number
+        satuan:
+          type: string
+        harga_satuan:
+          type: number
+        harga_total:
+          type: number
+        catatan:
+          type: string
+      required:
+        - id
+        - nomor
+        - tanggal
+        - keterangan
+        - jumlah
+        - satuan
+        - harga_satuan
+        - harga_total
+        - catatan
+
+    PurchaseInput:
+      type: object
+      properties:
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah:
+          type: number
+        satuan:
+          type: string
+        harga_satuan:
+          type: number
+        catatan:
+          type: string
+      required:
+        - nomor
+        - tanggal
+        - keterangan
+        - jumlah
+        - satuan
+        - harga_satuan
+        - catatan
+
+    PurchasePlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah:
+          type: number
+        satuan:
+          type: string
+        harga_satuan:
+          type: number
+        harga_total:
+          type: number
+        catatan:
+          type: string
+      required:
+        - id
+        - nomor
+        - tanggal
+        - keterangan
+        - jumlah
+        - satuan
+        - harga_satuan
+        - harga_total
+        - catatan
+
+    PurchasePlanInput:
+      type: object
+      properties:
+        nomor:
+          type: string
+        tanggal:
+          type: string
+        keterangan:
+          type: string
+        jumlah:
+          type: number
+        satuan:
+          type: string
+        harga_satuan:
+          type: number
+        catatan:
+          type: string
+      required:
+        - nomor
+        - tanggal
+        - keterangan
+        - jumlah
+        - satuan
+        - harga_satuan
+        - catatan
+
+    DashboardSummary:
+      type: object
+      properties:
+        total_purchases:
+          type: integer
+        total_purchase_plans:
+          type: integer
+        total_spend:
+          type: number
+        total_planned:
+          type: number
+        this_month_purchases:
+          type: integer
+        this_month_plans:
+          type: integer
+      required:
+        - total_purchases
+        - total_purchase_plans
+        - total_spend
+        - total_planned
+        - this_month_purchases
+        - this_month_plans
+
+    RecentActivity:
+      type: object
+      properties:
+        recent_purchases:
+          type: array
+          items:
+            $ref: "#/components/schemas/Purchase"
+        recent_plans:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchasePlan"
+      required:
+        - recent_purchases
+        - recent_plans

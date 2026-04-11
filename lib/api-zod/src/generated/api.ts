@@ -14,3 +14,235 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Get all purchases
+ */
+export const GetPurchasesQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
+});
+
+export const GetPurchasesResponseItem = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+export const GetPurchasesResponse = zod.array(GetPurchasesResponseItem);
+
+/**
+ * @summary Create a new purchase
+ */
+export const CreatePurchaseBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Get a purchase by ID
+ */
+export const GetPurchaseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetPurchaseResponse = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Update a purchase
+ */
+export const UpdatePurchaseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdatePurchaseBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  catatan: zod.string(),
+});
+
+export const UpdatePurchaseResponse = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Delete a purchase
+ */
+export const DeletePurchaseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeletePurchaseResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Get all purchase plans
+ */
+export const GetPurchasePlansQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
+});
+
+export const GetPurchasePlansResponseItem = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+export const GetPurchasePlansResponse = zod.array(GetPurchasePlansResponseItem);
+
+/**
+ * @summary Create a new purchase plan
+ */
+export const CreatePurchasePlanBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Get a purchase plan by ID
+ */
+export const GetPurchasePlanParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetPurchasePlanResponse = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Update a purchase plan
+ */
+export const UpdatePurchasePlanParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdatePurchasePlanBody = zod.object({
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  catatan: zod.string(),
+});
+
+export const UpdatePurchasePlanResponse = zod.object({
+  id: zod.number(),
+  nomor: zod.string(),
+  tanggal: zod.string(),
+  keterangan: zod.string(),
+  jumlah: zod.number(),
+  satuan: zod.string(),
+  harga_satuan: zod.number(),
+  harga_total: zod.number(),
+  catatan: zod.string(),
+});
+
+/**
+ * @summary Delete a purchase plan
+ */
+export const DeletePurchasePlanParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeletePurchasePlanResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary Get dashboard summary statistics
+ */
+export const GetDashboardSummaryResponse = zod.object({
+  total_purchases: zod.number(),
+  total_purchase_plans: zod.number(),
+  total_spend: zod.number(),
+  total_planned: zod.number(),
+  this_month_purchases: zod.number(),
+  this_month_plans: zod.number(),
+});
+
+/**
+ * @summary Get recent purchases and plans
+ */
+export const GetRecentActivityResponse = zod.object({
+  recent_purchases: zod.array(
+    zod.object({
+      id: zod.number(),
+      nomor: zod.string(),
+      tanggal: zod.string(),
+      keterangan: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+      harga_total: zod.number(),
+      catatan: zod.string(),
+    }),
+  ),
+  recent_plans: zod.array(
+    zod.object({
+      id: zod.number(),
+      nomor: zod.string(),
+      tanggal: zod.string(),
+      keterangan: zod.string(),
+      jumlah: zod.number(),
+      satuan: zod.string(),
+      harga_satuan: zod.number(),
+      harga_total: zod.number(),
+      catatan: zod.string(),
+    }),
+  ),
+});
