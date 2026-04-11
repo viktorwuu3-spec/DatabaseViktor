@@ -58,6 +58,25 @@ export const insertPurchasePlanSchema = createInsertSchema(
 export type InsertPurchasePlan = z.infer<typeof insertPurchasePlanSchema>;
 export type PurchasePlan = typeof purchasePlansTable.$inferSelect;
 
+export const categoriesTable = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  nama_kategori: text("nama_kategori").notNull().unique(),
+});
+
+export const insertCategorySchema = createInsertSchema(categoriesTable).omit({ id: true });
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Category = typeof categoriesTable.$inferSelect;
+
+export const suppliersTable = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  nama_supplier: text("nama_supplier").notNull(),
+  kontak_supplier: text("kontak_supplier").notNull().default(""),
+});
+
+export const insertSupplierSchema = createInsertSchema(suppliersTable).omit({ id: true });
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+export type Supplier = typeof suppliersTable.$inferSelect;
+
 export const invoicesTable = pgTable("invoices", {
   id: serial("id").primaryKey(),
   nomor_invoice: text("nomor_invoice").notNull(),

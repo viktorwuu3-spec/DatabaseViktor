@@ -37,7 +37,8 @@ import {
   X,
   CheckSquare,
 } from "lucide-react";
-import { PurchaseForm, KATEGORI_OPTIONS } from "@/components/purchase-form";
+import { PurchaseForm } from "@/components/purchase-form";
+import { useGetCategories } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -63,6 +64,7 @@ export default function Purchases() {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: categoriesData } = useGetCategories();
 
   const queryParams: {
     search?: string;
@@ -319,9 +321,9 @@ export default function Purchases() {
                   data-testid="filter-kategori"
                 >
                   <option value="">Semua Kategori</option>
-                  {KATEGORI_OPTIONS.map((k) => (
-                    <option key={k} value={k}>
-                      {k}
+                  {(categoriesData || []).map((c) => (
+                    <option key={c.id} value={c.nama_kategori}>
+                      {c.nama_kategori}
                     </option>
                   ))}
                 </select>

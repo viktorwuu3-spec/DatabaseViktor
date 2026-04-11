@@ -679,3 +679,103 @@ export const GetFinancialSummaryResponse = zod.object({
   saldo_akhir: zod.number(),
   kekurangan_dana: zod.number(),
 });
+
+/**
+ * @summary List all categories
+ */
+export const GetCategoriesQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+});
+
+export const GetCategoriesResponseItem = zod.object({
+  id: zod.number(),
+  nama_kategori: zod.string(),
+});
+export const GetCategoriesResponse = zod.array(GetCategoriesResponseItem);
+
+/**
+ * @summary Create a category
+ */
+export const CreateCategoryBody = zod.object({
+  nama_kategori: zod.string(),
+});
+
+/**
+ * @summary Update a category
+ */
+export const UpdateCategoryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCategoryBody = zod.object({
+  nama_kategori: zod.string(),
+});
+
+export const UpdateCategoryResponse = zod.object({
+  id: zod.number(),
+  nama_kategori: zod.string(),
+});
+
+/**
+ * @summary Delete a category
+ */
+export const DeleteCategoryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteCategoryResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});
+
+/**
+ * @summary List all suppliers
+ */
+export const GetSuppliersQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+});
+
+export const GetSuppliersResponseItem = zod.object({
+  id: zod.number(),
+  nama_supplier: zod.string(),
+  kontak_supplier: zod.string(),
+});
+export const GetSuppliersResponse = zod.array(GetSuppliersResponseItem);
+
+/**
+ * @summary Create a supplier
+ */
+export const CreateSupplierBody = zod.object({
+  nama_supplier: zod.string(),
+  kontak_supplier: zod.string().optional(),
+});
+
+/**
+ * @summary Update a supplier
+ */
+export const UpdateSupplierParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateSupplierBody = zod.object({
+  nama_supplier: zod.string(),
+  kontak_supplier: zod.string().optional(),
+});
+
+export const UpdateSupplierResponse = zod.object({
+  id: zod.number(),
+  nama_supplier: zod.string(),
+  kontak_supplier: zod.string(),
+});
+
+/**
+ * @summary Delete a supplier
+ */
+export const DeleteSupplierParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteSupplierResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});

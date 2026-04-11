@@ -9,6 +9,8 @@ import PurchasePlans from "@/pages/purchase-plans";
 import KasMasuk from "@/pages/kas-masuk";
 import AiAssistant from "@/pages/ai-assistant";
 import InvoicePage from "@/pages/invoice";
+import MasterKategori from "@/pages/master-kategori";
+import MasterSupplier from "@/pages/master-supplier";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +22,8 @@ function Router() {
       <Route path="/rencana" component={PurchasePlans} />
       <Route path="/kas-masuk" component={KasMasuk} />
       <Route path="/invoice" component={InvoicePage} />
+      <Route path="/master/kategori" component={MasterKategori} />
+      <Route path="/master/supplier" component={MasterSupplier} />
       <Route path="/ai" component={AiAssistant} />
       <Route component={NotFound} />
     </Switch>

@@ -184,6 +184,26 @@ export interface FinancialSummary {
   kekurangan_dana: number;
 }
 
+export interface Category {
+  id: number;
+  nama_kategori: string;
+}
+
+export interface CategoryInput {
+  nama_kategori: string;
+}
+
+export interface Supplier {
+  id: number;
+  nama_supplier: string;
+  kontak_supplier: string;
+}
+
+export interface SupplierInput {
+  nama_supplier: string;
+  kontak_supplier?: string;
+}
+
 export type GetPurchasesParams = {
   search?: string;
   startDate?: string;
@@ -269,5 +289,13 @@ export type ExportCashInPdfParams = {
 };
 
 export type GetInvoicesParams = {
+  search?: string;
+};
+
+export type GetCategoriesParams = {
+  search?: string;
+};
+
+export type GetSuppliersParams = {
   search?: string;
 };

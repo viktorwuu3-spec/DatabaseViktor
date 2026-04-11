@@ -115,4 +115,15 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 - `buildFilterInfoLines()` utility in `pdf-utils.ts` generates consistent filter descriptions across all reports
 - Invoice exports support search and selected IDs filtering
 
+### Master data management
+- **Categories** (`/master/kategori`) — CRUD page for purchase categories. Case-insensitive duplicate prevention (ilike check).
+- **Suppliers** (`/master/supplier`) — CRUD page for suppliers with optional contact info. No uniqueness constraint (same name, different contacts allowed).
+- `categories` table: id (serial PK), nama_kategori (unique)
+- `suppliers` table: id (serial PK), nama_supplier, kontak_supplier
+- API: `GET/POST /api/categories`, `PUT/DELETE /api/categories/:id`, `GET/POST /api/suppliers`, `PUT/DELETE /api/suppliers/:id`
+- SearchableCombobox component (`src/components/ui/searchable-combobox.tsx`) — reusable dropdown with type-to-search, allow-custom values, "Add New" option, keyboard navigation
+- PurchaseForm uses SearchableCombobox for both kategori (with inline add-new) and supplier (with auto-fill of contact on selection)
+- Category filter dropdowns on Pembelian and Rencana Pembelian pages dynamically populated from master data
+- Nav bar has "Master Data" dropdown with links to Kategori and Supplier pages
+
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

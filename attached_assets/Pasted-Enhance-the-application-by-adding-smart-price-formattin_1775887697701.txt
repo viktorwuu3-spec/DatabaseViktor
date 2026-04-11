@@ -1,0 +1,200 @@
+Enhance the application by adding smart price formatting, item master data, and intelligent dropdown selection for item input.
+
+==================================================
+
+1. PRICE INPUT FORMATTING (VERY IMPORTANT)
+   ==================================================
+
+Apply to ALL price inputs:
+
+* harga_satuan
+* total
+* any currency-related field
+
+REQUIREMENTS:
+
+* Automatically format number with thousand separator (Indonesian format):
+  Example:
+  1000 → 1.000
+  1000000 → 1.000.000
+
+* While typing:
+  → Format in real-time
+
+* Store value:
+  → Save as pure number (without dots)
+
+==================================================
+IMPLEMENTATION
+==============
+
+Frontend:
+
+* Use JavaScript input event
+* Remove all non-numeric characters
+* Format using:
+  Intl.NumberFormat("id-ID")
+
+Backend:
+
+* Ensure numeric conversion before saving
+
+==================================================
+UX RULES
+========
+
+* Cursor position must not jump incorrectly
+* User can still edit normally
+* Allow backspace without issues
+
+==================================================
+2. ITEM MASTER DATA (VERY IMPORTANT)
+====================================
+
+Create table:
+
+items
+
+Fields:
+
+* id (INTEGER PRIMARY KEY)
+* nama_item (TEXT)
+* satuan (TEXT)
+
+==================================================
+FEATURES (ITEM MASTER)
+======================
+
+CRUD system:
+
+* Add item
+* Edit item
+* Delete item
+* List items
+
+API:
+
+* GET /items
+* POST /items
+* PUT /items/:id
+* DELETE /items/:id
+
+==================================================
+FRONTEND (ITEM MASTER)
+======================
+
+Create page:
+/public/items.html
+
+Features:
+
+* Input:
+  nama_item
+  satuan
+
+* Table:
+
+  * nama_item
+  * satuan
+  * Edit
+  * Delete
+
+==================================================
+3. SMART ITEM DROPDOWN (IMPORTANT)
+==================================
+
+Apply to:
+
+* pembelian
+* rencana pembelian
+* invoice
+
+Replace "nama item" input with:
+
+→ SEARCHABLE DROPDOWN
+
+==================================================
+DROPDOWN REQUIREMENTS
+=====================
+
+* User can type to search item
+
+* Show matching results from database
+
+* If item selected:
+  → otomatis isi satuan
+
+* BUT:
+
+  * User can still type manual item name
+  * User can edit satuan manually
+
+==================================================
+4. AUTO FILL LOGIC
+==================
+
+When item selected:
+
+* Set:
+  nama_item = selected item
+  satuan = auto filled
+
+==================================================
+5. SEARCHABLE DROPDOWN IMPLEMENTATION
+=====================================
+
+Use:
+
+* Tom Select OR Select2 OR custom JS
+
+Features:
+
+* Typing filter
+* Keyboard navigation
+* Fast selection
+* Mobile friendly
+
+==================================================
+6. UX IMPROVEMENT
+=================
+
+* No scrolling long list
+* Fast typing experience
+* Auto focus next field after selection
+
+==================================================
+7. VALIDATION
+=============
+
+* nama_item required
+* satuan required
+
+==================================================
+8. DATA CONSISTENCY
+===================
+
+* If item deleted:
+  → existing data should NOT break
+  → keep stored text value
+
+==================================================
+9. OPTIONAL (RECOMMENDED)
+=========================
+
+* Quick add item from dropdown:
+  → "Tambah item baru"
+
+* Auto suggest frequently used items
+
+==================================================
+10. IMPORTANT RULES
+===================
+
+* Do NOT break existing forms
+* Keep dropdown fast & smooth
+* Ensure formatting does not break input
+* Ensure backend receives clean numeric values
+
+==================================================
+
+Build a professional, fast, and user-friendly item input system similar to POS/ERP applications.

@@ -24,6 +24,10 @@ tags:
     description: AI assistant operations
   - name: invoices
     description: Invoice / Memo operations
+  - name: categories
+    description: Category master data operations
+  - name: suppliers
+    description: Supplier master data operations
 paths:
   /healthz:
     get:
@@ -974,6 +978,164 @@ paths:
               schema:
                 $ref: "#/components/schemas/FinancialSummary"
 
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [categories]
+      summary: List all categories
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
+  /suppliers:
+    get:
+      operationId: getSuppliers
+      tags: [suppliers]
+      summary: List all suppliers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Supplier list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /suppliers/{id}:
+    put:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    delete:
+      operationId: deleteSupplier
+      tags: [suppliers]
+      summary: Delete a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1432,3 +1594,46 @@ components:
         - total_kas_masuk
         - saldo_akhir
         - kekurangan_dana
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        nama_kategori:
+          type: string
+      required:
+        - id
+        - nama_kategori
+
+    CategoryInput:
+      type: object
+      properties:
+        nama_kategori:
+          type: string
+      required:
+        - nama_kategori
+
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: integer
+        nama_supplier:
+          type: string
+        kontak_supplier:
+          type: string
+      required:
+        - id
+        - nama_supplier
+        - kontak_supplier
+
+    SupplierInput:
+      type: object
+      properties:
+        nama_supplier:
+          type: string
+        kontak_supplier:
+          type: string
+      required:
+        - nama_supplier

@@ -1,8 +1,17 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { PurchaseInput } from "@workspace/api-client-react";
+import {
+  useGetCategories,
+  useCreateCategory,
+  useGetSuppliers,
+  useCreateSupplier,
+  getGetCategoriesQueryKey,
+  getGetSuppliersQueryKey,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useFormNavigation } from "@/hooks/use-form-navigation";
 import {
   Form,
@@ -22,8 +31,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-
-export const KATEGORI_OPTIONS = ["ATK", "Konsumsi", "Operasional", "Lainnya"] as const;
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   nomor: z.string().min(1, "Nomor wajib diisi"),
@@ -105,6 +114,69 @@ export function PurchaseForm({
     });
   };
 
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data: categoriesData } = useGetCategories();
+  const { data: suppliersData } = useGetSuppliers();
+  const createCategoryMutation = useCreateCategory();
+  const createSupplierMutation = useCreateSupplier();
+
+  const categoryOptions = useMemo(
+    () =>
+      (categoriesData || []).map((c) => ({
+        value: c.nama_kategori,
+        label: c.nama_kategori,
+      })),
+    [categoriesData]
+  );
+
+  const supplierOptions = useMemo(
+    () =>
+      (suppliersData || []).map((s) => ({
+        value: s.nama_supplier,
+        label: s.nama_supplier,
+        sublabel: s.kontak_supplier || undefined,
+      })),
+    [suppliersData]
+  );
+
+  const handleAddCategory = (name: string) => {
+    createCategoryMutation.mutate(
+      { data: { nama_kategori: name } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetCategoriesQueryKey() });
+          form.setValue("kategori", name);
+          toast({ title: `Kategori "${name}" ditambahkan` });
+        },
+        onError: (err: any) => {
+          toast({ variant: "destructive", title: err?.response?.data?.error || "Gagal menambahkan kategori" });
+        },
+      }
+    );
+  };
+
+  const handleAddSupplier = (name: string) => {
+    createSupplierMutation.mutate(
+      { data: { nama_supplier: name, kontak_supplier: "" } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetSuppliersQueryKey() });
+          form.setValue("supplier", name);
+          toast({ title: `Supplier "${name}" ditambahkan` });
+        },
+        onError: () => {
+          toast({ variant: "destructive", title: "Gagal menambahkan supplier" });
+        },
+      }
+    );
+  };
+
+  const handleSupplierSelect = (option: { value: string; sublabel?: string }) => {
+    form.setValue("supplier_contact", option.sublabel ?? "");
+  };
+
   const triggerSubmit = useCallback(() => {
     form.handleSubmit(handleSubmit)();
   }, [form, handleSubmit]);
@@ -165,18 +237,16 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Kategori</FormLabel>
                     <FormControl>
-                      <select
-                        {...field}
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      <SearchableCombobox
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        options={categoryOptions}
+                        placeholder="Pilih atau ketik kategori..."
+                        allowCustom={true}
+                        onAddNew={handleAddCategory}
+                        addNewLabel="Tambah kategori"
                         data-testid="input-kategori"
-                      >
-                        <option value="">-- Pilih Kategori --</option>
-                        {KATEGORI_OPTIONS.map((k) => (
-                          <option key={k} value={k}>
-                            {k}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -266,9 +336,15 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Supplier (Opsional)</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nama supplier"
+                      <SearchableCombobox
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        options={supplierOptions}
+                        placeholder="Pilih atau ketik supplier..."
+                        allowCustom={true}
+                        onAddNew={handleAddSupplier}
+                        onSelectOption={handleSupplierSelect}
+                        addNewLabel="Tambah supplier"
                         data-testid="input-supplier"
                       />
                     </FormControl>
