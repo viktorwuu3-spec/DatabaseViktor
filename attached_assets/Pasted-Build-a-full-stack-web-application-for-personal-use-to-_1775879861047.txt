@@ -1,0 +1,221 @@
+Build a full-stack web application for personal use to manage purchase data and purchase planning data.
+
+TECH STACK:
+
+* Backend: Node.js with Express.js
+* Database: SQLite (use better-sqlite3 or sqlite3)
+* Frontend: HTML, CSS (use Tailwind CSS), and vanilla JavaScript
+* Export features: Use libraries like pdfkit (for PDF) and xlsx (for Excel)
+
+==================================================
+PROJECT STRUCTURE (IMPORTANT - FOLLOW THIS EXACTLY)
+===================================================
+
+/project-root
+│
+├── server.js
+├── package.json
+├── /config
+│   └── db.js
+│
+├── /models
+│   ├── purchaseModel.js
+│   └── purchasePlanModel.js
+│
+├── /routes
+│   ├── purchaseRoutes.js
+│   └── purchasePlanRoutes.js
+│
+├── /controllers
+│   ├── purchaseController.js
+│   └── purchasePlanController.js
+│
+├── /utils
+│   ├── pdfGenerator.js
+│   └── excelGenerator.js
+│
+├── /public
+│   ├── index.html
+│   ├── pembelian.html
+│   ├── rencana.html
+│   ├── /css
+│   │   └── styles.css
+│   ├── /js
+│   │   ├── main.js
+│   │   ├── pembelian.js
+│   │   └── rencana.js
+│
+└── /views (optional if needed)
+
+==================================================
+DATABASE STRUCTURE
+==================
+
+Create two tables:
+
+1. purchases
+2. purchase_plans
+
+Each table fields:
+
+* id (INTEGER PRIMARY KEY AUTOINCREMENT)
+* nomor (TEXT)
+* tanggal (TEXT)
+* keterangan (TEXT)
+* jumlah (REAL)
+* satuan (TEXT)
+* harga_satuan (REAL)
+* harga_total (REAL)
+* catatan (TEXT)
+
+==================================================
+BACKEND REQUIREMENTS
+====================
+
+1. Setup Express server in server.js
+
+2. Connect SQLite database in /config/db.js
+
+3. Create REST API:
+
+   * GET all data
+   * POST new data
+   * PUT update data
+   * DELETE data
+
+4. Separate logic:
+
+   * Models → database queries
+   * Controllers → logic
+   * Routes → endpoints
+
+5. Auto calculate:
+   harga_total = jumlah * harga_satuan
+
+==================================================
+FRONTEND REQUIREMENTS
+=====================
+
+1. Responsive UI using Tailwind CSS
+
+2. Pages:
+
+   * index.html (Dashboard)
+   * pembelian.html (Data Pembelian)
+   * rencana.html (Rencana Pembelian)
+
+3. Features:
+
+   * Form input (langsung dari website)
+   * Table display data
+   * Edit & Delete button
+   * Auto calculate harga_total (JS)
+
+==================================================
+EXPORT FEATURES
+===============
+
+1. Excel Export:
+
+   * Use xlsx library
+   * Export both tables
+
+2. PDF Export:
+
+   * Use pdfkit
+   * Format clean table
+
+==================================================
+PRINT FEATURE (VERY IMPORTANT)
+==============================
+
+Add print button using window.print() with custom CSS print layout.
+
+A. LAPORAN PEMBELIAN:
+
+* Show table
+* Signature section:
+
+  Left side:
+  "Dibuat oleh"
+  (space)
+  "Tanggal: __________"
+
+  Right side:
+  "Diketahui oleh"
+  (space)
+  "Tanggal: __________"
+
+B. LAPORAN PENGAJUAN:
+
+* Show table
+* Signature section:
+
+  Left side:
+  "Diajukan oleh"
+  (space)
+  "Tanggal: __________"
+
+  Right side:
+  "Disetujui oleh"
+  (space)
+  "Tanggal: __________"
+
+==================================================
+UTILS (EXPORT LOGIC)
+====================
+
+/utils/pdfGenerator.js:
+
+* Function to generate PDF
+* Accept data + type (pembelian / pengajuan)
+
+/utils/excelGenerator.js:
+
+* Function to generate Excel file
+
+==================================================
+FRONTEND JS LOGIC
+=================
+
+/public/js/pembelian.js:
+
+* Handle CRUD API
+* Handle form submit
+* Auto calculate harga_total
+
+/public/js/rencana.js:
+
+* Same logic for purchase plans
+
+==================================================
+UI/UX
+=====
+
+* Clean, minimal, modern
+* Navigation bar:
+
+  * Dashboard
+  * Data Pembelian
+  * Rencana Pembelian
+* Mobile friendly
+
+==================================================
+BONUS FEATURES (IF POSSIBLE)
+============================
+
+* Search by tanggal
+* Filter data
+* Total summary at bottom
+
+==================================================
+RUN INSTRUCTIONS
+================
+
+* Run: npm install
+* Start: node server.js
+* Open in browser (Replit preview)
+
+==================================================
+
+Ensure the code is clean, modular, and easy to understand for beginners.
