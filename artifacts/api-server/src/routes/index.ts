@@ -10,6 +10,7 @@ import invoicesRouter from "./invoices";
 import financialSummaryRouter from "./financial-summary";
 import categoriesRouter from "./categories";
 import suppliersRouter from "./suppliers";
+import itemsRouter from "./items";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use("/invoices", invoicesRouter);
 router.use(financialSummaryRouter);
 router.use(categoriesRouter);
 router.use(suppliersRouter);
+router.use(itemsRouter);
 
 export default router;

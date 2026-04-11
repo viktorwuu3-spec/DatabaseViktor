@@ -18,6 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Table,
   TableBody,
@@ -449,7 +450,7 @@ export default function KasMasuk() {
                 <FormItem><FormLabel>Keterangan (Opsional)</FormLabel><FormControl><Input {...field} placeholder="Keterangan kas masuk" /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="jumlah_kas_masuk" render={({ field }) => (
-                <FormItem><FormLabel>Jumlah Kas Masuk</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Jumlah Kas Masuk</FormLabel><FormControl><CurrencyInput value={Number(field.value) || 0} onChange={(val) => field.onChange(val)} /></FormControl><FormMessage /></FormItem>
               )} />
               </div>
               <DialogFooter>

@@ -204,6 +204,17 @@ export interface SupplierInput {
   kontak_supplier?: string;
 }
 
+export interface Item {
+  id: number;
+  nama_item: string;
+  satuan: string;
+}
+
+export interface ItemInput {
+  nama_item: string;
+  satuan?: string;
+}
+
 export type GetPurchasesParams = {
   search?: string;
   startDate?: string;
@@ -297,5 +308,9 @@ export type GetCategoriesParams = {
 };
 
 export type GetSuppliersParams = {
+  search?: string;
+};
+
+export type GetItemsParams = {
   search?: string;
 };

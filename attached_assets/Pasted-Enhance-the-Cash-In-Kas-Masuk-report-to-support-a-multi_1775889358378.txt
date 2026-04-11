@@ -1,0 +1,164 @@
+Enhance the Cash In (Kas Masuk) report to support a multi-column categorized financial table similar to spreadsheet-style reports.
+
+==================================================
+
+1. GOAL (VERY IMPORTANT)
+   ==================================================
+
+The Cash In report must be displayed in a structured table format like Excel, where:
+
+* Each row = 1 transaksi
+* Each category = separate column
+* Values placed under respective category column
+* Show totals per column
+* Show grand total
+
+==================================================
+2. DATA STRUCTURE CHANGE
+========================
+
+Update cash_in table:
+
+Add:
+
+* kategori (TEXT)
+
+Example categories:
+
+* Padel
+* Rimbo Panjang
+* Lain-Lain
+
+==================================================
+3. TABLE DISPLAY FORMAT
+=======================
+
+Create table layout:
+
+Columns:
+
+* Nomor
+* Tanggal
+* (Dynamic Category Columns)
+
+Example:
+
+| Nomor | Tanggal | Padel | Rimbo Panjang | Lain-Lain |
+
+==================================================
+4. DATA MAPPING LOGIC (IMPORTANT)
+=================================
+
+For each row:
+
+* Only ONE category column will be filled
+* Other category columns = "-" or empty
+
+Example:
+
+IF kategori = "Padel":
+→ value goes to Padel column
+→ other columns empty
+
+==================================================
+5. FRONTEND TABLE RENDERING
+===========================
+
+* Dynamically generate category columns
+* Loop through available categories
+* Render column headers automatically
+
+==================================================
+6. TOTAL PER COLUMN
+===================
+
+At bottom row:
+
+* Calculate SUM for each category column
+
+Example:
+
+| Total |   | 3.493.179.500 | 2.466.900.000 | 35.005.500 |
+
+==================================================
+7. GRAND TOTAL (IMPORTANT)
+==========================
+
+Below total row:
+
+Display:
+
+"Total Keseluruhan: Rp XXXXX"
+
+Formula:
+
+* Sum of ALL category totals
+
+==================================================
+8. EXPORT (PDF / PRINT / EXCEL)
+===============================
+
+Ensure SAME layout is used:
+
+* Same columns
+* Same totals
+* Same structure
+
+==================================================
+PDF/PRINT DESIGN
+================
+
+HEADER:
+
+* Title:
+  "Pengambilan Kas Terbaru"
+* Date range (optional)
+
+TABLE:
+
+* Same structure as UI
+
+FOOTER:
+
+* Total per category
+* Grand total
+
+==================================================
+9. NUMBER FORMAT
+================
+
+* Use Indonesian currency format:
+  Rp 1.000.000
+
+* Apply to:
+
+  * table values
+  * totals
+
+==================================================
+10. OPTIONAL ENHANCEMENTS
+=========================
+
+* Allow filter by date
+* Allow filter by category
+* Highlight total row (bold + background color)
+
+==================================================
+11. VALIDATION
+==============
+
+* kategori must exist
+* jumlah_kas_masuk must be number
+
+==================================================
+12. IMPORTANT RULES
+===================
+
+* Do NOT break existing cash system
+* Keep data consistent
+* Ensure totals are always correct
+* Ensure dynamic columns work properly
+
+==================================================
+
+Build a professional financial report similar to Excel-style categorized cash flow tables.

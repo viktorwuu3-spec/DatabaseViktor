@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Layout } from "@/components/layout";
 import { useFormNavigation } from "@/hooks/use-form-navigation";
@@ -19,6 +19,14 @@ import {
 import {
   Plus, Pencil, Trash2, FileSpreadsheet, FileText, Printer, X, CheckSquare,
 } from "lucide-react";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import {
+  useGetItems,
+  useCreateItem,
+  getGetItemsQueryKey,
+} from "@workspace/api-client-react";
+import { useToast } from "@/hooks/use-toast";
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
@@ -57,6 +65,7 @@ const EMPTY_ITEM: InvoiceItem = { nama_item: "", jumlah: 1, satuan: "pcs", harga
 
 export default function InvoicePage() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<InvoiceWithItems | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -69,6 +78,42 @@ export default function InvoicePage() {
     pelanggan: "", kontak_pelanggan: "", keterangan: "", catatan: "",
   });
   const [items, setItems] = useState<InvoiceItem[]>([{ ...EMPTY_ITEM }]);
+
+  const { data: itemsData } = useGetItems();
+  const createItemMutation = useCreateItem();
+
+  const itemOptions = useMemo(
+    () =>
+      (itemsData || []).map((i) => ({
+        value: i.nama_item,
+        label: i.nama_item,
+        sublabel: i.satuan,
+      })),
+    [itemsData]
+  );
+
+  const handleAddMasterItem = (name: string, idx: number) => {
+    createItemMutation.mutate(
+      { data: { nama_item: name, satuan: "pcs" } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetItemsQueryKey() });
+          updateItem(idx, "nama_item", name);
+          updateItem(idx, "satuan", "pcs");
+          toast({ title: `Item "${name}" ditambahkan ke master` });
+        },
+        onError: () => {
+          toast({ variant: "destructive", title: "Gagal menambahkan item" });
+        },
+      }
+    );
+  };
+
+  const handleItemSelect = (idx: number, option: { value: string; sublabel?: string }) => {
+    if (option.sublabel) {
+      updateItem(idx, "satuan", option.sublabel);
+    }
+  };
 
   const { data: invoices, isLoading } = useQuery<InvoiceWithItems[]>({
     queryKey: ["invoices", search],
@@ -391,7 +436,7 @@ export default function InvoicePage() {
                       <TableHead>Nama Item</TableHead>
                       <TableHead className="w-[80px]">Jumlah</TableHead>
                       <TableHead className="w-[80px]">Satuan</TableHead>
-                      <TableHead className="w-[120px]">Harga Satuan</TableHead>
+                      <TableHead className="w-[150px]">Harga Satuan</TableHead>
                       <TableHead className="w-[120px] text-right">Total</TableHead>
                       <TableHead className="w-[40px]"></TableHead>
                     </TableRow>
@@ -401,11 +446,16 @@ export default function InvoicePage() {
                       <TableRow key={idx}>
                         <TableCell className="text-center text-sm">{idx + 1}</TableCell>
                         <TableCell>
-                          <Input
+                          <SearchableCombobox
                             value={item.nama_item}
-                            onChange={(e) => updateItem(idx, "nama_item", e.target.value)}
-                            placeholder="Nama item"
-                            className="h-8"
+                            onChange={(val) => updateItem(idx, "nama_item", val)}
+                            options={itemOptions}
+                            placeholder="Pilih atau ketik item..."
+                            allowCustom={true}
+                            onAddNew={(name) => handleAddMasterItem(name, idx)}
+                            onSelectOption={(opt) => handleItemSelect(idx, opt)}
+                            addNewLabel="Tambah item baru"
+                            className="min-w-[180px]"
                           />
                         </TableCell>
                         <TableCell>
@@ -425,12 +475,11 @@ export default function InvoicePage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
+                          <CurrencyInput
                             value={item.harga_satuan}
-                            onChange={(e) => updateItem(idx, "harga_satuan", Number(e.target.value))}
-                            className="h-8"
-                            min={0}
+                            onChange={(val) => updateItem(idx, "harga_satuan", val)}
+                            prefix=""
+                            placeholder="0"
                           />
                         </TableCell>
                         <TableCell className="text-right font-medium text-sm">

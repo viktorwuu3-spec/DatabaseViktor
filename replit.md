@@ -118,12 +118,18 @@ Full-stack purchase management web application (Manajemen Pembelian). A personal
 ### Master data management
 - **Categories** (`/master/kategori`) — CRUD page for purchase categories. Case-insensitive duplicate prevention (ilike check).
 - **Suppliers** (`/master/supplier`) — CRUD page for suppliers with optional contact info. No uniqueness constraint (same name, different contacts allowed).
+- **Items** (`/master/item`) — CRUD page for master items/barang with nama_item and satuan fields.
 - `categories` table: id (serial PK), nama_kategori (unique)
 - `suppliers` table: id (serial PK), nama_supplier, kontak_supplier
-- API: `GET/POST /api/categories`, `PUT/DELETE /api/categories/:id`, `GET/POST /api/suppliers`, `PUT/DELETE /api/suppliers/:id`
+- `items` table: id (serial PK), nama_item, satuan
+- API: `GET/POST /api/categories`, `PUT/DELETE /api/categories/:id`, `GET/POST /api/suppliers`, `PUT/DELETE /api/suppliers/:id`, `GET/POST /api/items`, `PUT/DELETE /api/items/:id`
 - SearchableCombobox component (`src/components/ui/searchable-combobox.tsx`) — reusable dropdown with type-to-search, allow-custom values, "Add New" option, keyboard navigation
-- PurchaseForm uses SearchableCombobox for both kategori (with inline add-new) and supplier (with auto-fill of contact on selection)
+- CurrencyInput component (`src/components/ui/currency-input.tsx`) — reusable number input with real-time Indonesian thousand-separator formatting (dot separator), stores pure number value
+- PurchaseForm uses SearchableCombobox for kategori, supplier (with auto-fill contact), and keterangan/nama_barang (from items master, auto-fills satuan). CurrencyInput for harga_satuan.
+- Invoice form uses SearchableCombobox for item rows (nama_item from items master, auto-fills satuan) and CurrencyInput for harga_satuan.
+- Kas Masuk form uses CurrencyInput for jumlah_kas_masuk.
+- Inline "Add New" in dropdowns creates master data on-the-fly and syncs form fields.
 - Category filter dropdowns on Pembelian and Rencana Pembelian pages dynamically populated from master data
-- Nav bar has "Master Data" dropdown with links to Kategori and Supplier pages
+- Nav bar has "Master Data" dropdown with links to Kategori, Supplier, and Item pages
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.

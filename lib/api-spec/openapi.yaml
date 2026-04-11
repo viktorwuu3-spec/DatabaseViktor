@@ -28,6 +28,8 @@ tags:
     description: Category master data operations
   - name: suppliers
     description: Supplier master data operations
+  - name: items
+    description: Item master data operations
 paths:
   /healthz:
     get:
@@ -1136,6 +1138,85 @@ paths:
               schema:
                 $ref: "#/components/schemas/DeleteResponse"
 
+  /items:
+    get:
+      operationId: getItems
+      tags: [items]
+      summary: List all items
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Item list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+    post:
+      operationId: createItem
+      tags: [items]
+      summary: Create an item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+
+  /items/{id}:
+    put:
+      operationId: updateItem
+      tags: [items]
+      summary: Update an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+    delete:
+      operationId: deleteItem
+      tags: [items]
+      summary: Delete an item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1637,3 +1718,27 @@ components:
           type: string
       required:
         - nama_supplier
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        nama_item:
+          type: string
+        satuan:
+          type: string
+      required:
+        - id
+        - nama_item
+        - satuan
+
+    ItemInput:
+      type: object
+      properties:
+        nama_item:
+          type: string
+        satuan:
+          type: string
+      required:
+        - nama_item

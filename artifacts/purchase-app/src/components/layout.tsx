@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, LayoutDashboard, CalendarClock, Banknote, Sparkles, FileText, Tags, Truck, ChevronDown, Database } from "lucide-react";
+import { ShoppingCart, LayoutDashboard, CalendarClock, Banknote, Sparkles, FileText, Tags, Truck, Package, ChevronDown, Database } from "lucide-react";
 import { Button } from "./ui/button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -18,6 +18,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const masterItems = [
     { href: "/master/kategori", label: "Kategori", icon: Tags },
     { href: "/master/supplier", label: "Supplier", icon: Truck },
+    { href: "/master/item", label: "Item", icon: Package },
   ];
 
   const isMasterActive = location.startsWith("/master");

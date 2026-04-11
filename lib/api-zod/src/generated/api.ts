@@ -779,3 +779,55 @@ export const DeleteSupplierResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
 });
+
+/**
+ * @summary List all items
+ */
+export const GetItemsQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+});
+
+export const GetItemsResponseItem = zod.object({
+  id: zod.number(),
+  nama_item: zod.string(),
+  satuan: zod.string(),
+});
+export const GetItemsResponse = zod.array(GetItemsResponseItem);
+
+/**
+ * @summary Create an item
+ */
+export const CreateItemBody = zod.object({
+  nama_item: zod.string(),
+  satuan: zod.string().optional(),
+});
+
+/**
+ * @summary Update an item
+ */
+export const UpdateItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateItemBody = zod.object({
+  nama_item: zod.string(),
+  satuan: zod.string().optional(),
+});
+
+export const UpdateItemResponse = zod.object({
+  id: zod.number(),
+  nama_item: zod.string(),
+  satuan: zod.string(),
+});
+
+/**
+ * @summary Delete an item
+ */
+export const DeleteItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteItemResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+});

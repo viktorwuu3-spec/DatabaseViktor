@@ -8,8 +8,11 @@ import {
   useCreateCategory,
   useGetSuppliers,
   useCreateSupplier,
+  useGetItems,
+  useCreateItem,
   getGetCategoriesQueryKey,
   getGetSuppliersQueryKey,
+  getGetItemsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFormNavigation } from "@/hooks/use-form-navigation";
@@ -32,6 +35,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
@@ -119,8 +123,10 @@ export function PurchaseForm({
 
   const { data: categoriesData } = useGetCategories();
   const { data: suppliersData } = useGetSuppliers();
+  const { data: itemsData } = useGetItems();
   const createCategoryMutation = useCreateCategory();
   const createSupplierMutation = useCreateSupplier();
+  const createItemMutation = useCreateItem();
 
   const categoryOptions = useMemo(
     () =>
@@ -139,6 +145,16 @@ export function PurchaseForm({
         sublabel: s.kontak_supplier || undefined,
       })),
     [suppliersData]
+  );
+
+  const itemOptions = useMemo(
+    () =>
+      (itemsData || []).map((i) => ({
+        value: i.nama_item,
+        label: i.nama_item,
+        sublabel: i.satuan,
+      })),
+    [itemsData]
   );
 
   const handleAddCategory = (name: string) => {
@@ -171,6 +187,28 @@ export function PurchaseForm({
         },
       }
     );
+  };
+
+  const handleAddItem = (name: string) => {
+    createItemMutation.mutate(
+      { data: { nama_item: name, satuan: "pcs" } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetItemsQueryKey() });
+          form.setValue("keterangan", name);
+          toast({ title: `Item "${name}" ditambahkan` });
+        },
+        onError: () => {
+          toast({ variant: "destructive", title: "Gagal menambahkan item" });
+        },
+      }
+    );
+  };
+
+  const handleItemSelect = (option: { value: string; sublabel?: string }) => {
+    if (option.sublabel) {
+      form.setValue("satuan", option.sublabel);
+    }
   };
 
   const handleSupplierSelect = (option: { value: string; sublabel?: string }) => {
@@ -259,7 +297,17 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Keterangan / Nama Barang</FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-keterangan" />
+                      <SearchableCombobox
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        options={itemOptions}
+                        placeholder="Pilih atau ketik nama barang..."
+                        allowCustom={true}
+                        onAddNew={handleAddItem}
+                        onSelectOption={handleItemSelect}
+                        addNewLabel="Tambah item baru"
+                        data-testid="input-keterangan"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -306,9 +354,9 @@ export function PurchaseForm({
                   <FormItem>
                     <FormLabel>Harga Satuan</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
+                      <CurrencyInput
+                        value={Number(field.value) || 0}
+                        onChange={(val) => field.onChange(val)}
                         data-testid="input-harga-satuan"
                       />
                     </FormControl>

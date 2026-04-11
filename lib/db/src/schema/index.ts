@@ -93,6 +93,16 @@ export const insertInvoiceSchema = createInsertSchema(invoicesTable).omit({
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Invoice = typeof invoicesTable.$inferSelect;
 
+export const itemsTable = pgTable("items", {
+  id: serial("id").primaryKey(),
+  nama_item: text("nama_item").notNull(),
+  satuan: text("satuan").notNull().default("pcs"),
+});
+
+export const insertItemSchema = createInsertSchema(itemsTable).omit({ id: true });
+export type InsertItem = z.infer<typeof insertItemSchema>;
+export type Item = typeof itemsTable.$inferSelect;
+
 export const invoiceItemsTable = pgTable("invoice_items", {
   id: serial("id").primaryKey(),
   invoice_id: integer("invoice_id").notNull(),

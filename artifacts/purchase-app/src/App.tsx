@@ -11,6 +11,7 @@ import AiAssistant from "@/pages/ai-assistant";
 import InvoicePage from "@/pages/invoice";
 import MasterKategori from "@/pages/master-kategori";
 import MasterSupplier from "@/pages/master-supplier";
+import MasterItem from "@/pages/master-item";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/invoice" component={InvoicePage} />
       <Route path="/master/kategori" component={MasterKategori} />
       <Route path="/master/supplier" component={MasterSupplier} />
+      <Route path="/master/item" component={MasterItem} />
       <Route path="/ai" component={AiAssistant} />
       <Route component={NotFound} />
     </Switch>
