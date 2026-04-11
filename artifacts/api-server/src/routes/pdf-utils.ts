@@ -1,0 +1,209 @@
+import PDFDocument from "pdfkit";
+
+export function formatRupiah(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "Rp 0";
+  const formatted = Math.abs(value).toLocaleString("id-ID");
+  return value < 0 ? `-Rp ${formatted}` : `Rp ${formatted}`;
+}
+
+export function formatTanggal(dateStr: string | null | undefined): string {
+  if (!dateStr) return "-";
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ];
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  const day = parseInt(parts[2], 10);
+  const month = months[parseInt(parts[1], 10) - 1] || parts[1];
+  const year = parts[0];
+  return `${day} ${month} ${year}`;
+}
+
+interface Column {
+  label: string;
+  width: number;
+  align?: "left" | "right" | "center";
+  getValue: (row: Record<string, unknown>, index: number) => string;
+}
+
+interface PdfReportOptions {
+  title: string;
+  subtitle?: string;
+  columns: Column[];
+  data: Record<string, unknown>[];
+  summaryLines?: string[];
+  totalLabel?: string;
+  totalValue?: string;
+  signatureLeft: string;
+  signatureRight: string;
+  layout?: "portrait" | "landscape";
+}
+
+export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument {
+  const {
+    title, subtitle, columns, data, summaryLines,
+    totalLabel, totalValue, signatureLeft, signatureRight,
+    layout = "landscape",
+  } = options;
+
+  const doc = new PDFDocument({
+    margin: 40,
+    size: "A4",
+    layout,
+    bufferPages: true,
+  });
+
+  const pageWidth = layout === "landscape" ? 841.89 : 595.28;
+  const marginLeft = 40;
+  const marginRight = 40;
+  const usableWidth = pageWidth - marginLeft - marginRight;
+  const pageBottom = layout === "landscape" ? 555.28 - 40 : 841.89 - 40;
+  const rowHeight = 20;
+  const headerHeight = 24;
+
+  const tableWidth = columns.reduce((sum, col) => sum + col.width, 0);
+  const tableLeft = marginLeft;
+  const tableRight = tableLeft + tableWidth;
+
+  function drawHeader() {
+    doc.fontSize(14).font("Helvetica-Bold").text(title, marginLeft, 40, {
+      width: usableWidth,
+      align: "center",
+    });
+    if (subtitle) {
+      doc.fontSize(9).font("Helvetica").text(subtitle, marginLeft, doc.y + 2, {
+        width: usableWidth,
+        align: "center",
+      });
+    }
+    const now = new Date();
+    const dateStr = `${now.getDate()} ${["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][now.getMonth()]} ${now.getFullYear()}`;
+    doc.fontSize(8).font("Helvetica").text(`Dicetak: ${dateStr}`, marginLeft, doc.y + 4, {
+      width: usableWidth,
+      align: "right",
+    });
+    doc.moveDown(0.5);
+  }
+
+  function drawSummaryBox() {
+    if (!summaryLines || summaryLines.length === 0) return;
+    const boxTop = doc.y;
+    doc.fontSize(9).font("Helvetica");
+    summaryLines.forEach((line) => {
+      doc.text(line, marginLeft + 10, doc.y, { width: usableWidth - 20 });
+    });
+    doc.moveDown(0.5);
+  }
+
+  function drawTableHeader(y: number): number {
+    doc.rect(tableLeft, y, tableWidth, headerHeight).fill("#2563eb");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(8);
+    let x = tableLeft;
+    columns.forEach((col) => {
+      const textAlign = col.align || "left";
+      const padding = 4;
+      doc.text(col.label, x + padding, y + 6, {
+        width: col.width - padding * 2,
+        align: textAlign,
+      });
+      x += col.width;
+    });
+    doc.fillColor("black");
+    return y + headerHeight;
+  }
+
+  function drawRow(y: number, row: Record<string, unknown>, index: number, isEven: boolean): number {
+    if (isEven) {
+      doc.rect(tableLeft, y, tableWidth, rowHeight).fill("#f0f4ff");
+    }
+    doc.fillColor("black").font("Helvetica").fontSize(7.5);
+    let x = tableLeft;
+    columns.forEach((col) => {
+      const val = col.getValue(row, index);
+      const textAlign = col.align || "left";
+      const padding = 4;
+      doc.text(val, x + padding, y + 5, {
+        width: col.width - padding * 2,
+        align: textAlign,
+        lineBreak: false,
+      });
+      x += col.width;
+    });
+    doc.strokeColor("#d1d5db").lineWidth(0.5);
+    doc.moveTo(tableLeft, y + rowHeight).lineTo(tableRight, y + rowHeight).stroke();
+    return y + rowHeight;
+  }
+
+  function drawTotalRow(y: number) {
+    if (!totalLabel || !totalValue) return y;
+    doc.rect(tableLeft, y, tableWidth, headerHeight).fill("#1e40af");
+    doc.fillColor("white").font("Helvetica-Bold").fontSize(9);
+    doc.text(totalLabel, tableLeft + 4, y + 6, {
+      width: tableWidth * 0.6,
+      align: "left",
+    });
+    doc.text(totalValue, tableLeft + tableWidth * 0.6, y + 6, {
+      width: tableWidth * 0.4 - 4,
+      align: "right",
+    });
+    doc.fillColor("black");
+    return y + headerHeight;
+  }
+
+  function drawSignature(y: number) {
+    if (y > pageBottom - 100) {
+      doc.addPage();
+      y = 60;
+    }
+    y += 30;
+    doc.font("Helvetica").fontSize(9);
+    doc.text(signatureLeft, marginLeft + 20, y);
+    doc.text(signatureRight, pageWidth - marginRight - 180, y);
+    y += 60;
+    doc.moveTo(marginLeft + 20, y).lineTo(marginLeft + 170, y).stroke();
+    doc.moveTo(pageWidth - marginRight - 180, y).lineTo(pageWidth - marginRight - 30, y).stroke();
+    y += 5;
+    doc.fontSize(8).text("Nama / Tanda Tangan", marginLeft + 20, y);
+    doc.text("Nama / Tanda Tangan", pageWidth - marginRight - 180, y);
+    y += 15;
+    doc.text("Tanggal: _______________", marginLeft + 20, y);
+    doc.text("Tanggal: _______________", pageWidth - marginRight - 180, y);
+  }
+
+  function addPageNumber() {
+    const totalPages = doc.bufferedPageRange().count;
+    for (let i = 0; i < totalPages; i++) {
+      doc.switchToPage(i);
+      doc.fontSize(7).font("Helvetica").fillColor("#6b7280");
+      doc.text(
+        `Halaman ${i + 1} dari ${totalPages}`,
+        marginLeft,
+        layout === "landscape" ? 555.28 - 25 : 841.89 - 25,
+        { width: usableWidth, align: "center" }
+      );
+    }
+    doc.fillColor("black");
+  }
+
+  drawHeader();
+  drawSummaryBox();
+
+  let currentY = doc.y + 5;
+  currentY = drawTableHeader(currentY);
+
+  data.forEach((row, index) => {
+    if (currentY + rowHeight > pageBottom - 20) {
+      doc.addPage();
+      currentY = 40;
+      currentY = drawTableHeader(currentY);
+    }
+    currentY = drawRow(currentY, row, index, index % 2 === 0);
+  });
+
+  currentY = drawTotalRow(currentY);
+  drawSignature(currentY);
+  addPageNumber();
+
+  return doc;
+}

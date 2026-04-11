@@ -13,8 +13,8 @@ import {
   ExportCashInPdfQueryParams,
 } from "@workspace/api-zod";
 import type { SQL } from "drizzle-orm";
-import PDFDocument from "pdfkit";
 import * as XLSX from "xlsx";
+import { generatePdfReport, formatRupiah, formatTanggal } from "./pdf-utils.js";
 
 const router: IRouter = Router();
 
@@ -201,85 +201,39 @@ router.get("/cash-in/export/pdf", async (req, res) => {
     const params = parsed.success ? parsed.data : {};
     const conditions = buildCashInFilters(params);
     const ids = params.ids
-      ? params.ids
-          .split(",")
-          .map(Number)
-          .filter((n) => !isNaN(n))
+      ? params.ids.split(",").map(Number).filter((n) => !isNaN(n))
       : undefined;
     const data = await queryCashIn(conditions, ids);
     const totals = await getCashTotals();
 
-    const doc = new PDFDocument({ margin: 40, size: "A4" });
+    const totalKasMasuk = data.reduce((sum, r) => sum + (r.jumlah_kas_masuk ?? 0), 0);
+
+    const doc = generatePdfReport({
+      title: "LAPORAN KAS MASUK",
+      subtitle: `Total ${data.length} transaksi`,
+      layout: "portrait",
+      columns: [
+        { label: "No", width: 30, align: "center", getValue: (_r, i) => String(i + 1) },
+        { label: "Nomor", width: 80, getValue: (r) => String(r.nomor ?? "-") },
+        { label: "Tanggal", width: 100, getValue: (r) => formatTanggal(r.tanggal as string) },
+        { label: "Keterangan", width: 150, getValue: (r) => String(r.keterangan ?? "-") },
+        { label: "Jumlah Kas Masuk", width: 120, align: "right", getValue: (r) => formatRupiah(r.jumlah_kas_masuk as number) },
+      ],
+      data: data as unknown as Record<string, unknown>[],
+      summaryLines: [
+        `Total Kas Masuk: ${formatRupiah(totals.total_kas_masuk)}`,
+        `Total Pengeluaran: ${formatRupiah(totals.total_pengeluaran)}`,
+        `Sisa Kas: ${formatRupiah(totals.sisa_kas)}`,
+      ],
+      totalLabel: "TOTAL KAS MASUK",
+      totalValue: formatRupiah(totalKasMasuk),
+      signatureLeft: "Dibuat oleh,",
+      signatureRight: "Diketahui oleh,",
+    });
+
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=kas-masuk.pdf",
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=kas-masuk.pdf");
     doc.pipe(res);
-
-    doc.fontSize(16).font("Helvetica-Bold").text("LAPORAN KAS MASUK", {
-      align: "center",
-    });
-    doc.moveDown(0.5);
-
-    doc.fontSize(10).font("Helvetica");
-    doc.text(
-      `Total Kas Masuk: Rp ${totals.total_kas_masuk.toLocaleString("id-ID")}`,
-    );
-    doc.text(
-      `Total Pengeluaran: Rp ${totals.total_pengeluaran.toLocaleString("id-ID")}`,
-    );
-    doc.text(
-      `Sisa Kas: Rp ${totals.sisa_kas.toLocaleString("id-ID")}`,
-    );
-    doc.moveDown(1);
-
-    const cols = [
-      { label: "No", key: "nomor", width: 80 },
-      { label: "Tanggal", key: "tanggal", width: 100 },
-      { label: "Keterangan", key: "keterangan", width: 200 },
-      { label: "Jumlah", key: "jumlah_kas_masuk", width: 120 },
-    ];
-
-    const tableTop = doc.y;
-    let x = 40;
-
-    doc.font("Helvetica-Bold");
-    cols.forEach((col) => {
-      doc.text(col.label, x, tableTop, { width: col.width });
-      x += col.width;
-    });
-
-    doc.moveDown(0.3);
-    doc.moveTo(40, doc.y).lineTo(540, doc.y).stroke();
-    doc.moveDown(0.3);
-
-    doc.font("Helvetica");
-    data.forEach((row) => {
-      const y = doc.y;
-      x = 40;
-      cols.forEach((col) => {
-        const val = String(
-          (row as Record<string, unknown>)[col.key] ?? "-",
-        );
-        doc.text(val || "-", x, y, { width: col.width });
-        x += col.width;
-      });
-      doc.moveDown(0.3);
-    });
-
-    doc.moveTo(40, doc.y).lineTo(540, doc.y).stroke();
-    doc.moveDown(2);
-
-    const sigY = doc.y;
-    doc.font("Helvetica").fontSize(10);
-    doc.text("Dibuat oleh", 40, sigY);
-    doc.text("Diketahui oleh", 350, sigY);
-    doc.moveDown(3);
-    const lineY = doc.y;
-    doc.moveTo(40, lineY).lineTo(200, lineY).stroke();
-    doc.moveTo(350, lineY).lineTo(510, lineY).stroke();
-
     doc.end();
   } catch (err) {
     req.log.error({ err }, "Failed to export cash in to PDF");

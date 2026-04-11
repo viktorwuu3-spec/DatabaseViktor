@@ -324,40 +324,51 @@ export default function KasMasuk() {
             </div>
           </CardHeader>
           <CardContent className="print:p-0">
-            <div className="print-only text-center mb-8">
-              <h2 className="text-2xl font-bold">LAPORAN KAS MASUK</h2>
-              <p className="text-gray-600">Tanggal Cetak: {formatDate(new Date().toISOString())}</p>
+            <div className="print-only text-center mb-6">
+              <h2 className="print-title">LAPORAN KAS MASUK</h2>
+              <p className="print-subtitle">
+                Total {cashInData?.items?.length ?? 0} transaksi &bull; Dicetak: {formatDate(new Date().toISOString())}
+              </p>
+              {cashInData && (
+                <div className="text-left mt-4 mb-4 text-xs">
+                  <p>Total Kas Masuk: {formatCurrency(cashInData.total_kas_masuk)}</p>
+                  <p>Total Pengeluaran: {formatCurrency(cashInData.total_pengeluaran)}</p>
+                  <p className="font-bold">Sisa Kas: {formatCurrency(cashInData.sisa_kas)}</p>
+                </div>
+              )}
             </div>
 
-            <div className="rounded-md border print:border-black">
+            <div className="rounded-md border print:border-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50 print:bg-gray-100">
+                  <TableRow className="bg-muted/50">
                     <TableHead className="w-[40px] print-hide">
                       <input type="checkbox" checked={!!allSelected} onChange={toggleSelectAll} className="h-4 w-4 rounded border-gray-300" />
                     </TableHead>
-                    <TableHead className="print:text-black">Nomor</TableHead>
-                    <TableHead className="print:text-black">Tanggal</TableHead>
-                    <TableHead className="print:text-black">Keterangan</TableHead>
-                    <TableHead className="text-right print:text-black">Jumlah Kas Masuk</TableHead>
+                    <TableHead className="print-only w-[30px]">No</TableHead>
+                    <TableHead>Nomor</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Keterangan</TableHead>
+                    <TableHead className="text-right">Jumlah Kas Masuk</TableHead>
                     <TableHead className="w-[80px] text-center print-hide">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Memuat data...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Memuat data...</TableCell></TableRow>
                   ) : cashInData?.items?.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Tidak ada data ditemukan</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center py-10 text-muted-foreground">Tidak ada data ditemukan</TableCell></TableRow>
                   ) : (
-                    cashInData?.items?.map((item) => (
-                      <TableRow key={item.id} className={`print:border-b print:border-black ${selectedIds.has(item.id) ? "bg-primary/5" : ""}`}>
+                    cashInData?.items?.map((item, idx) => (
+                      <TableRow key={item.id} className={selectedIds.has(item.id) ? "bg-primary/5" : ""}>
                         <TableCell className="print-hide">
                           <input type="checkbox" checked={selectedIds.has(item.id)} onChange={() => toggleSelect(item.id)} className="h-4 w-4 rounded border-gray-300" />
                         </TableCell>
-                        <TableCell className="font-medium print:text-black">{item.nomor}</TableCell>
-                        <TableCell className="print:text-black">{formatDate(item.tanggal)}</TableCell>
-                        <TableCell className="print:text-black">{item.keterangan || "-"}</TableCell>
-                        <TableCell className="text-right font-medium print:text-black">{formatCurrency(item.jumlah_kas_masuk)}</TableCell>
+                        <TableCell className="print-only text-center">{idx + 1}</TableCell>
+                        <TableCell className="font-medium">{item.nomor}</TableCell>
+                        <TableCell>{formatDate(item.tanggal)}</TableCell>
+                        <TableCell>{item.keterangan || "-"}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(item.jumlah_kas_masuk)}</TableCell>
                         <TableCell className="text-center print-hide">
                           <div className="flex justify-center gap-1">
                             <Button variant="ghost" size="icon" onClick={() => { setEditingItem(item); setIsFormOpen(true); }}>
@@ -372,19 +383,32 @@ export default function KasMasuk() {
                     ))
                   )}
                 </TableBody>
+                {cashInData?.items && cashInData.items.length > 0 && (
+                  <tfoot>
+                    <tr className="print-total-row bg-muted/50 font-bold">
+                      <td className="print-hide"></td>
+                      <td className="print-only"></td>
+                      <td colSpan={3} className="text-right p-2 px-3">TOTAL KAS MASUK</td>
+                      <td className="text-right p-2 px-3">{formatCurrency(cashInData.total_kas_masuk)}</td>
+                      <td className="print-hide"></td>
+                    </tr>
+                  </tfoot>
+                )}
               </Table>
             </div>
 
-            <div className="print-only mt-16 flex justify-between px-10">
+            <div className="print-only print-signature mt-16 flex justify-between px-10">
               <div className="text-center">
-                <p className="mb-16">Dibuat oleh</p>
+                <p className="mb-16">Dibuat oleh,</p>
                 <div className="w-48 border-b border-black"></div>
-                <p className="mt-2 text-left">Tanggal: __________</p>
+                <p className="mt-1 text-xs">Nama / Tanda Tangan</p>
+                <p className="mt-2 text-left">Tanggal: _______________</p>
               </div>
               <div className="text-center">
-                <p className="mb-16">Diketahui oleh</p>
+                <p className="mb-16">Diketahui oleh,</p>
                 <div className="w-48 border-b border-black"></div>
-                <p className="mt-2 text-left">Tanggal: __________</p>
+                <p className="mt-1 text-xs">Nama / Tanda Tangan</p>
+                <p className="mt-2 text-left">Tanggal: _______________</p>
               </div>
             </div>
           </CardContent>

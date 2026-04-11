@@ -14,8 +14,8 @@ import {
   ExportPurchasePlansPdfQueryParams,
 } from "@workspace/api-zod";
 import type { SQL } from "drizzle-orm";
-import PDFDocument from "pdfkit";
 import * as XLSX from "xlsx";
+import { generatePdfReport, formatRupiah, formatTanggal } from "./pdf-utils.js";
 
 const router: IRouter = Router();
 
@@ -163,67 +163,34 @@ router.get("/purchase-plans/export/pdf", async (req, res) => {
     const ids = params.ids ? params.ids.split(",").map(Number).filter((n) => !isNaN(n)) : undefined;
     const data = await queryPlans(conditions, ids);
 
-    const doc = new PDFDocument({ margin: 40, size: "A4", layout: "landscape" });
+    const grandTotal = data.reduce((sum, r) => sum + (r.harga_total ?? 0), 0);
+
+    const doc = generatePdfReport({
+      title: "LAPORAN RENCANA PEMBELIAN",
+      subtitle: `Total ${data.length} rencana`,
+      layout: "landscape",
+      columns: [
+        { label: "No", width: 30, align: "center", getValue: (_r, i) => String(i + 1) },
+        { label: "Nomor", width: 60, getValue: (r) => String(r.nomor ?? "-") },
+        { label: "Tanggal", width: 80, getValue: (r) => formatTanggal(r.tanggal as string) },
+        { label: "Kategori", width: 65, getValue: (r) => String(r.kategori ?? "-") },
+        { label: "Keterangan", width: 140, getValue: (r) => String(r.keterangan ?? "-") },
+        { label: "Jml", width: 35, align: "right", getValue: (r) => String(r.jumlah ?? 0) },
+        { label: "Satuan", width: 45, getValue: (r) => String(r.satuan ?? "-") },
+        { label: "Harga Satuan", width: 85, align: "right", getValue: (r) => formatRupiah(r.harga_satuan as number) },
+        { label: "Harga Total", width: 90, align: "right", getValue: (r) => formatRupiah(r.harga_total as number) },
+        { label: "Supplier", width: 90, getValue: (r) => String(r.supplier ?? "-") },
+      ],
+      data: data as unknown as Record<string, unknown>[],
+      totalLabel: "GRAND TOTAL",
+      totalValue: formatRupiah(grandTotal),
+      signatureLeft: "Diajukan oleh,",
+      signatureRight: "Disetujui oleh,",
+    });
+
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=rencana-pembelian.pdf");
     doc.pipe(res);
-
-    doc.fontSize(16).font("Helvetica-Bold").text("LAPORAN RENCANA PEMBELIAN", { align: "center" });
-    doc.moveDown(0.5);
-    doc.fontSize(10).font("Helvetica");
-
-    const cols = [
-      { label: "No", key: "nomor", width: 55 },
-      { label: "Tanggal", key: "tanggal", width: 70 },
-      { label: "Kategori", key: "kategori", width: 65 },
-      { label: "Keterangan", key: "keterangan", width: 120 },
-      { label: "Jumlah", key: "jumlah", width: 50 },
-      { label: "Satuan", key: "satuan", width: 50 },
-      { label: "Harga Sat.", key: "harga_satuan", width: 80 },
-      { label: "Total", key: "harga_total", width: 80 },
-      { label: "Supplier", key: "supplier", width: 80 },
-    ];
-
-    const tableTop = doc.y;
-    let x = 40;
-
-    doc.font("Helvetica-Bold");
-    cols.forEach((col) => {
-      doc.text(col.label, x, tableTop, { width: col.width });
-      x += col.width;
-    });
-
-    doc.moveDown(0.3);
-    doc.moveTo(40, doc.y).lineTo(800, doc.y).stroke();
-    doc.moveDown(0.3);
-
-    doc.font("Helvetica");
-    data.forEach((row) => {
-      const y = doc.y;
-      x = 40;
-      cols.forEach((col) => {
-        const val = String((row as Record<string, unknown>)[col.key] ?? "-");
-        doc.text(val || "-", x, y, { width: col.width });
-        x += col.width;
-      });
-      doc.moveDown(0.3);
-    });
-
-    doc.moveTo(40, doc.y).lineTo(800, doc.y).stroke();
-    doc.moveDown(2);
-
-    const sigY = doc.y;
-    doc.font("Helvetica").fontSize(10);
-    doc.text("Diajukan oleh", 40, sigY);
-    doc.text("Disetujui oleh", 500, sigY);
-    doc.moveDown(3);
-    const lineY = doc.y;
-    doc.moveTo(40, lineY).lineTo(200, lineY).stroke();
-    doc.moveTo(500, lineY).lineTo(660, lineY).stroke();
-    doc.moveDown(0.5);
-    doc.text("Tanggal: __________", 40, doc.y);
-    doc.text("Tanggal: __________", 500, doc.y - 15);
-
     doc.end();
   } catch (err) {
     req.log.error({ err }, "Failed to export purchase plans to PDF");

@@ -351,17 +351,17 @@ export default function PurchasePlans() {
             </div>
           </CardHeader>
           <CardContent className="print:p-0">
-            <div className="print-only text-center mb-8">
-              <h2 className="text-2xl font-bold">LAPORAN RENCANA PEMBELIAN</h2>
-              <p className="text-gray-600">
-                Tanggal Cetak: {formatDate(new Date().toISOString())}
+            <div className="print-only text-center mb-6">
+              <h2 className="print-title">LAPORAN RENCANA PEMBELIAN</h2>
+              <p className="print-subtitle">
+                Total {plans?.length ?? 0} rencana &bull; Dicetak: {formatDate(new Date().toISOString())}
               </p>
             </div>
 
-            <div className="rounded-md border print:border-black">
+            <div className="rounded-md border print:border-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-muted/50 print:bg-gray-100">
+                  <TableRow className="bg-muted/50">
                     <TableHead className="w-[40px] print-hide">
                       <input
                         type="checkbox"
@@ -371,58 +371,37 @@ export default function PurchasePlans() {
                         data-testid="checkbox-select-all"
                       />
                     </TableHead>
-                    <TableHead className="w-[80px] print:text-black">
-                      Nomor
-                    </TableHead>
-                    <TableHead className="w-[100px] print:text-black">
-                      Tanggal
-                    </TableHead>
-                    <TableHead className="w-[80px] print:text-black">
-                      Kategori
-                    </TableHead>
-                    <TableHead className="print:text-black">
-                      Keterangan
-                    </TableHead>
-                    <TableHead className="text-right print:text-black">
-                      Jml
-                    </TableHead>
-                    <TableHead className="print:text-black">Satuan</TableHead>
-                    <TableHead className="text-right print:text-black">
-                      Harga Sat.
-                    </TableHead>
-                    <TableHead className="text-right print:text-black">
-                      Total
-                    </TableHead>
-                    <TableHead className="print:text-black">Supplier</TableHead>
-                    <TableHead className="w-[80px] text-center print-hide">
-                      Aksi
-                    </TableHead>
+                    <TableHead className="print-only w-[30px]">No</TableHead>
+                    <TableHead className="w-[80px]">Nomor</TableHead>
+                    <TableHead className="w-[100px]">Tanggal</TableHead>
+                    <TableHead className="w-[80px]">Kategori</TableHead>
+                    <TableHead>Keterangan</TableHead>
+                    <TableHead className="text-right">Jml</TableHead>
+                    <TableHead>Satuan</TableHead>
+                    <TableHead className="text-right">Harga Sat.</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead className="w-[80px] text-center print-hide">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={11}
-                        className="text-center py-10 text-muted-foreground"
-                      >
+                      <TableCell colSpan={12} className="text-center py-10 text-muted-foreground">
                         Memuat data...
                       </TableCell>
                     </TableRow>
                   ) : plans?.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={11}
-                        className="text-center py-10 text-muted-foreground"
-                      >
+                      <TableCell colSpan={12} className="text-center py-10 text-muted-foreground">
                         Tidak ada data ditemukan
                       </TableCell>
                     </TableRow>
                   ) : (
-                    plans?.map((p) => (
+                    plans?.map((p, idx) => (
                       <TableRow
                         key={p.id}
-                        className={`print:border-b print:border-black ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}
+                        className={selectedIds.has(p.id) ? "bg-primary/5" : ""}
                         data-testid={`row-plan-${p.id}`}
                       >
                         <TableCell className="print-hide">
@@ -434,62 +413,32 @@ export default function PurchasePlans() {
                             data-testid={`checkbox-${p.id}`}
                           />
                         </TableCell>
-                        <TableCell className="font-medium print:text-black text-xs">
-                          {p.nomor}
-                        </TableCell>
-                        <TableCell className="print:text-black text-xs">
-                          {formatDate(p.tanggal)}
-                        </TableCell>
-                        <TableCell className="print:text-black text-xs">
-                          {p.kategori || "-"}
-                        </TableCell>
-                        <TableCell className="print:text-black">
+                        <TableCell className="print-only text-center">{idx + 1}</TableCell>
+                        <TableCell className="font-medium text-xs">{p.nomor}</TableCell>
+                        <TableCell className="text-xs">{formatDate(p.tanggal)}</TableCell>
+                        <TableCell className="text-xs">{p.kategori || "-"}</TableCell>
+                        <TableCell>
                           {p.keterangan}
                           {p.catatan && (
-                            <div className="text-xs text-muted-foreground print:text-gray-600 mt-1">
-                              {p.catatan}
-                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">{p.catatan}</div>
                           )}
                         </TableCell>
-                        <TableCell className="text-right print:text-black">
-                          {p.jumlah}
-                        </TableCell>
-                        <TableCell className="print:text-black">
-                          {p.satuan}
-                        </TableCell>
-                        <TableCell className="text-right print:text-black">
-                          {formatCurrency(p.harga_satuan)}
-                        </TableCell>
-                        <TableCell className="text-right font-medium print:text-black">
-                          {formatCurrency(p.harga_total)}
-                        </TableCell>
-                        <TableCell className="print:text-black text-xs">
+                        <TableCell className="text-right">{p.jumlah}</TableCell>
+                        <TableCell>{p.satuan}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(p.harga_satuan)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(p.harga_total)}</TableCell>
+                        <TableCell className="text-xs">
                           <div>{p.supplier || "-"}</div>
                           {p.supplier_contact && (
-                            <div className="text-xs text-muted-foreground">
-                              {p.supplier_contact}
-                            </div>
+                            <div className="text-xs text-muted-foreground">{p.supplier_contact}</div>
                           )}
                         </TableCell>
                         <TableCell className="text-center print-hide">
                           <div className="flex justify-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setEditingItem(p);
-                                setIsFormOpen(true);
-                              }}
-                              data-testid={`btn-edit-${p.id}`}
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => { setEditingItem(p); setIsFormOpen(true); }} data-testid={`btn-edit-${p.id}`}>
                               <Pencil className="w-4 h-4 text-blue-500" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeletingId(p.id)}
-                              data-testid={`btn-delete-${p.id}`}
-                            >
+                            <Button variant="ghost" size="icon" onClick={() => setDeletingId(p.id)} data-testid={`btn-delete-${p.id}`}>
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
                           </div>
@@ -500,36 +449,33 @@ export default function PurchasePlans() {
                 </TableBody>
                 {plans && plans.length > 0 && (
                   <tfoot>
-                    <TableRow className="bg-muted/50 font-bold print:bg-gray-100 print:text-black">
-                      <TableCell className="print-hide"></TableCell>
-                      <TableCell colSpan={4} className="text-right">
-                        TOTAL
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {totalJumlah}
-                      </TableCell>
-                      <TableCell colSpan={2}></TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(totalHarga)}
-                      </TableCell>
-                      <TableCell></TableCell>
-                      <TableCell className="print-hide"></TableCell>
-                    </TableRow>
+                    <tr className="print-total-row bg-muted/50 font-bold">
+                      <td className="print-hide"></td>
+                      <td className="print-only"></td>
+                      <td colSpan={4} className="text-right p-2 px-3">GRAND TOTAL</td>
+                      <td className="text-right p-2 px-3">{totalJumlah}</td>
+                      <td colSpan={2} className="p-2"></td>
+                      <td className="text-right p-2 px-3">{formatCurrency(totalHarga)}</td>
+                      <td className="p-2"></td>
+                      <td className="print-hide"></td>
+                    </tr>
                   </tfoot>
                 )}
               </Table>
             </div>
 
-            <div className="print-only mt-16 flex justify-between px-10">
+            <div className="print-only print-signature mt-16 flex justify-between px-10">
               <div className="text-center">
-                <p className="mb-16">Diajukan oleh</p>
+                <p className="mb-16">Diajukan oleh,</p>
                 <div className="w-48 border-b border-black"></div>
-                <p className="mt-2 text-left">Tanggal: __________</p>
+                <p className="mt-1 text-xs">Nama / Tanda Tangan</p>
+                <p className="mt-2 text-left">Tanggal: _______________</p>
               </div>
               <div className="text-center">
-                <p className="mb-16">Disetujui oleh</p>
+                <p className="mb-16">Disetujui oleh,</p>
                 <div className="w-48 border-b border-black"></div>
-                <p className="mt-2 text-left">Tanggal: __________</p>
+                <p className="mt-1 text-xs">Nama / Tanda Tangan</p>
+                <p className="mt-2 text-left">Tanggal: _______________</p>
               </div>
             </div>
           </CardContent>
