@@ -20,6 +20,10 @@ import type {
   DashboardSummary,
   DeleteResponse,
   ErrorResponse,
+  ExportPurchasePlansExcelParams,
+  ExportPurchasePlansPdfParams,
+  ExportPurchasesExcelParams,
+  ExportPurchasesPdfParams,
   GetPurchasePlansParams,
   GetPurchasesParams,
   HealthStatus,
@@ -554,6 +558,203 @@ export const useDeletePurchase = <
 };
 
 /**
+ * @summary Export purchases as Excel file
+ */
+export const getExportPurchasesExcelUrl = (
+  params?: ExportPurchasesExcelParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/purchases/export/excel?${stringifiedParams}`
+    : `/api/purchases/export/excel`;
+};
+
+export const exportPurchasesExcel = async (
+  params?: ExportPurchasesExcelParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportPurchasesExcelUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportPurchasesExcelQueryKey = (
+  params?: ExportPurchasesExcelParams,
+) => {
+  return [`/api/purchases/export/excel`, ...(params ? [params] : [])] as const;
+};
+
+export const getExportPurchasesExcelQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportPurchasesExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasesExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasesExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getExportPurchasesExcelQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof exportPurchasesExcel>>
+  > = ({ signal }) =>
+    exportPurchasesExcel(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportPurchasesExcel>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportPurchasesExcelQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportPurchasesExcel>>
+>;
+export type ExportPurchasesExcelQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export purchases as Excel file
+ */
+
+export function useExportPurchasesExcel<
+  TData = Awaited<ReturnType<typeof exportPurchasesExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasesExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasesExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportPurchasesExcelQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Export purchases as PDF file
+ */
+export const getExportPurchasesPdfUrl = (params?: ExportPurchasesPdfParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/purchases/export/pdf?${stringifiedParams}`
+    : `/api/purchases/export/pdf`;
+};
+
+export const exportPurchasesPdf = async (
+  params?: ExportPurchasesPdfParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportPurchasesPdfUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportPurchasesPdfQueryKey = (
+  params?: ExportPurchasesPdfParams,
+) => {
+  return [`/api/purchases/export/pdf`, ...(params ? [params] : [])] as const;
+};
+
+export const getExportPurchasesPdfQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportPurchasesPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasesPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasesPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getExportPurchasesPdfQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof exportPurchasesPdf>>
+  > = ({ signal }) => exportPurchasesPdf(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportPurchasesPdf>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportPurchasesPdfQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportPurchasesPdf>>
+>;
+export type ExportPurchasesPdfQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export purchases as PDF file
+ */
+
+export function useExportPurchasesPdf<
+  TData = Awaited<ReturnType<typeof exportPurchasesPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasesPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasesPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportPurchasesPdfQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Get all purchase plans
  */
 export const getGetPurchasePlansUrl = (params?: GetPurchasePlansParams) => {
@@ -993,6 +1194,212 @@ export const useDeletePurchasePlan = <
 > => {
   return useMutation(getDeletePurchasePlanMutationOptions(options));
 };
+
+/**
+ * @summary Export purchase plans as Excel file
+ */
+export const getExportPurchasePlansExcelUrl = (
+  params?: ExportPurchasePlansExcelParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/purchase-plans/export/excel?${stringifiedParams}`
+    : `/api/purchase-plans/export/excel`;
+};
+
+export const exportPurchasePlansExcel = async (
+  params?: ExportPurchasePlansExcelParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportPurchasePlansExcelUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportPurchasePlansExcelQueryKey = (
+  params?: ExportPurchasePlansExcelParams,
+) => {
+  return [
+    `/api/purchase-plans/export/excel`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getExportPurchasePlansExcelQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportPurchasePlansExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasePlansExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasePlansExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getExportPurchasePlansExcelQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof exportPurchasePlansExcel>>
+  > = ({ signal }) =>
+    exportPurchasePlansExcel(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportPurchasePlansExcel>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportPurchasePlansExcelQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportPurchasePlansExcel>>
+>;
+export type ExportPurchasePlansExcelQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export purchase plans as Excel file
+ */
+
+export function useExportPurchasePlansExcel<
+  TData = Awaited<ReturnType<typeof exportPurchasePlansExcel>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasePlansExcelParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasePlansExcel>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportPurchasePlansExcelQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Export purchase plans as PDF file
+ */
+export const getExportPurchasePlansPdfUrl = (
+  params?: ExportPurchasePlansPdfParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/purchase-plans/export/pdf?${stringifiedParams}`
+    : `/api/purchase-plans/export/pdf`;
+};
+
+export const exportPurchasePlansPdf = async (
+  params?: ExportPurchasePlansPdfParams,
+  options?: RequestInit,
+): Promise<Blob> => {
+  return customFetch<Blob>(getExportPurchasePlansPdfUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getExportPurchasePlansPdfQueryKey = (
+  params?: ExportPurchasePlansPdfParams,
+) => {
+  return [
+    `/api/purchase-plans/export/pdf`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getExportPurchasePlansPdfQueryOptions = <
+  TData = Awaited<ReturnType<typeof exportPurchasePlansPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasePlansPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasePlansPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getExportPurchasePlansPdfQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof exportPurchasePlansPdf>>
+  > = ({ signal }) =>
+    exportPurchasePlansPdf(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof exportPurchasePlansPdf>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ExportPurchasePlansPdfQueryResult = NonNullable<
+  Awaited<ReturnType<typeof exportPurchasePlansPdf>>
+>;
+export type ExportPurchasePlansPdfQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Export purchase plans as PDF file
+ */
+
+export function useExportPurchasePlansPdf<
+  TData = Awaited<ReturnType<typeof exportPurchasePlansPdf>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ExportPurchasePlansPdfParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof exportPurchasePlansPdf>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getExportPurchasePlansPdfQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Get dashboard summary statistics

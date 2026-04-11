@@ -81,7 +81,27 @@ export type GetPurchasesParams = {
   tanggal?: string;
 };
 
+export type ExportPurchasesExcelParams = {
+  search?: string;
+  tanggal?: string;
+};
+
+export type ExportPurchasesPdfParams = {
+  search?: string;
+  tanggal?: string;
+};
+
 export type GetPurchasePlansParams = {
+  search?: string;
+  tanggal?: string;
+};
+
+export type ExportPurchasePlansExcelParams = {
+  search?: string;
+  tanggal?: string;
+};
+
+export type ExportPurchasePlansPdfParams = {
   search?: string;
   tanggal?: string;
 };

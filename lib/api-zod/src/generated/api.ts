@@ -110,6 +110,22 @@ export const DeletePurchaseResponse = zod.object({
 });
 
 /**
+ * @summary Export purchases as Excel file
+ */
+export const ExportPurchasesExcelQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
+});
+
+/**
+ * @summary Export purchases as PDF file
+ */
+export const ExportPurchasesPdfQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
+});
+
+/**
  * @summary Get all purchase plans
  */
 export const GetPurchasePlansQueryParams = zod.object({
@@ -201,6 +217,22 @@ export const DeletePurchasePlanParams = zod.object({
 export const DeletePurchasePlanResponse = zod.object({
   success: zod.boolean(),
   message: zod.string(),
+});
+
+/**
+ * @summary Export purchase plans as Excel file
+ */
+export const ExportPurchasePlansExcelQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
+});
+
+/**
+ * @summary Export purchase plans as PDF file
+ */
+export const ExportPurchasePlansPdfQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  tanggal: zod.coerce.string().optional(),
 });
 
 /**

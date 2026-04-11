@@ -151,6 +151,56 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /purchases/export/excel:
+    get:
+      operationId: exportPurchasesExcel
+      tags: [purchases]
+      summary: Export purchases as Excel file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Excel file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /purchases/export/pdf:
+    get:
+      operationId: exportPurchasesPdf
+      tags: [purchases]
+      summary: Export purchases as PDF file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF file download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
   /purchase-plans:
     get:
       operationId: getPurchasePlans
@@ -270,6 +320,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /purchase-plans/export/excel:
+    get:
+      operationId: exportPurchasePlansExcel
+      tags: [purchase-plans]
+      summary: Export purchase plans as Excel file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Excel file download
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+
+  /purchase-plans/export/pdf:
+    get:
+      operationId: exportPurchasePlansPdf
+      tags: [purchase-plans]
+      summary: Export purchase plans as PDF file
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tanggal
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PDF file download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
 
   /dashboard/summary:
     get:
