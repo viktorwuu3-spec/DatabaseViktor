@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { PurchaseInput } from "@workspace/api-client-react";
 import {
   Form,
   FormControl,
@@ -37,7 +38,7 @@ interface PurchaseFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultValues?: Partial<FormValues>;
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: PurchaseInput) => void;
   title: string;
   isSubmitting?: boolean;
 }
