@@ -63,9 +63,9 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
   const marginBottom = 50;
   const usableWidth = pageWidth - marginLeft - marginRight;
   const pageBottom = pageHeight - marginBottom;
-  const rowHeight = 18;
-  const headerHeight = 22;
-  const padding = 4;
+  const rowHeight = 20;
+  const headerHeight = 24;
+  const padding = 5;
 
   const tableWidth = columns.reduce((sum, col) => sum + col.width, 0);
   const tableLeft = marginLeft;
@@ -137,7 +137,7 @@ export function generatePdfReport(options: PdfReportOptions): PDFKit.PDFDocument
     let x = tableLeft;
     columns.forEach((col) => {
       const val = col.getValue(row, index);
-      doc.text(val, x + padding, y + 4, {
+      doc.text(val, x + padding, y + 6, {
         width: col.width - padding * 2,
         align: col.align || "left",
         lineBreak: false,

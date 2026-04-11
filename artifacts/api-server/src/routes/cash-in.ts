@@ -213,8 +213,8 @@ router.get("/cash-in/export/pdf", async (req, res) => {
       subtitle: `Total ${data.length} transaksi`,
       layout: "portrait",
       columns: [
-        { label: "No", width: 30, align: "center", getValue: (_r, i) => String(i + 1) },
-        { label: "Nomor", width: 80, getValue: (r) => String(r.nomor ?? "-") },
+        { label: "No.", width: 40, align: "center", getValue: (_r, i) => String(i + 1) },
+        { label: "Nomor", width: 85, getValue: (r) => String(r.nomor ?? "-") },
         { label: "Tanggal", width: 100, getValue: (r) => formatTanggal(r.tanggal as string) },
         { label: "Keterangan", width: 150, getValue: (r) => String(r.keterangan ?? "-") },
         { label: "Jumlah Kas Masuk", width: 120, align: "right", getValue: (r) => formatRupiah(r.jumlah_kas_masuk as number) },
