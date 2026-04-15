@@ -1,0 +1,196 @@
+Enhance the application by adding advanced filtered export and print features for all reports.
+
+==================================================
+
+1. FILTER-BASED EXPORT SYSTEM (VERY IMPORTANT)
+   ==================================================
+
+Allow users to generate reports (Print, PDF, Excel) based on filters.
+
+Apply to:
+
+* purchases (pembelian)
+* purchase_plans (pengajuan)
+* cash_in (optional)
+
+==================================================
+2. FILTER OPTIONS
+=================
+
+Users must be able to filter by:
+
+A. Date Range:
+
+* startDate (YYYY-MM-DD)
+* endDate (YYYY-MM-DD)
+
+B. Category:
+
+* kategori (for purchases & purchase_plans)
+
+C. Search:
+
+* nomor
+* keterangan
+
+D. Data Selection (optional):
+
+* Selected rows (checkbox system)
+
+==================================================
+3. EXPORT TYPES
+===============
+
+Provide buttons:
+
+* Print (Filtered / Selected)
+* Export PDF (Filtered / Selected)
+* Export Excel (Filtered / Selected)
+
+==================================================
+4. BACKEND IMPLEMENTATION
+=========================
+
+Create or update endpoints:
+
+GET /report/purchases
+GET /report/purchase-plans
+
+Accept query parameters:
+
+* startDate
+* endDate
+* kategori
+* search
+
+Optional:
+
+* selectedIds (array)
+
+==================================================
+5. FILTER LOGIC (IMPORTANT)
+===========================
+
+* If filter exists → apply WHERE condition
+* If no filter → return all data
+* If selectedIds provided:
+  → ONLY return selected data
+
+Priority:
+selectedIds > filters > all data
+
+==================================================
+6. DATA PROCESSING
+==================
+
+Before export:
+
+* Calculate:
+  total_pengeluaran
+  total_kas_masuk
+  saldo_akhir
+  kekurangan_dana
+
+==================================================
+7. PRINT / PDF / EXCEL OUTPUT
+=============================
+
+Report must include:
+
+HEADER:
+
+* Title (Laporan Pembelian / Pengajuan)
+* Filter info:
+
+Example:
+"Periode: 01-04-2026 s/d 10-04-2026"
+"Kategori: ATK"
+
+BODY:
+
+* Table data
+
+## FOOTER (IMPORTANT):
+
+TOTAL PENGELUARAN : Rp XXXXX
+TOTAL KAS MASUK   : Rp XXXXX
+----------------------------
+
+SALDO AKHIR       : Rp XXXXX
+
+IF saldo negatif:
+KEKURANGAN DANA   : Rp XXXXX
+----------------------------
+
+==================================================
+8. FRONTEND IMPLEMENTATION
+==========================
+
+Add UI:
+
+A. Filter Section:
+
+* Date picker (start & end)
+* Category dropdown
+* Search input
+
+B. Buttons:
+
+* "Tampilkan Data"
+* "Print"
+* "Export PDF"
+* "Export Excel"
+
+C. Selected Mode:
+
+* Checkbox per row
+* "Gunakan data terpilih"
+
+==================================================
+9. USER EXPERIENCE (IMPORTANT)
+==============================
+
+* Show current filter info before export
+
+* Show warning:
+  "Tidak ada data sesuai filter"
+
+* If no data selected:
+  → show alert
+
+==================================================
+10. PRINT MODE
+==============
+
+* Hide buttons
+* Clean layout
+* Optimize for A4
+
+==================================================
+11. VALIDATION & SAFETY
+=======================
+
+* Validate date format
+* Sanitize inputs
+* Prevent SQL injection
+* Ignore invalid IDs
+
+==================================================
+12. PERFORMANCE
+===============
+
+* Use efficient queries (WHERE, SUM)
+* Avoid loading unnecessary data
+
+==================================================
+13. IMPORTANT RULES
+===================
+
+* Do NOT break existing system
+* Keep calculations consistent
+* Ensure same result across Print, PDF, Excel
+* Keep UI simple and user-friendly
+
+==================================================
+
+Implement a professional filtering and export system similar to business/ERP applications.

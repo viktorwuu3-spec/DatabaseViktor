@@ -1,0 +1,265 @@
+Enhance the application with improved form input navigation (Enter key behavior), a complete Memo/Invoice feature, and financial summary calculations in reports (saldo akhir & kekurangan dana).
+
+==================================================
+
+1. FORM INPUT NAVIGATION (ENTER KEY FLOW)
+   ==================================================
+
+Improve all input forms (pembelian, rencana, kas masuk, invoice):
+
+REQUIREMENTS:
+
+* When user presses ENTER:
+  → Move focus to the NEXT input field
+  → Follow the visual order (top to bottom)
+
+* DO NOT skip fields
+  → Include ALL fields (including optional)
+
+* On the LAST field:
+  → ENTER triggers form submission (SAVE)
+
+==================================================
+IMPLEMENTATION DETAILS
+======================
+
+Frontend JavaScript:
+
+* Add "keydown" event listener
+
+* Detect Enter key (key === "Enter")
+
+* event.preventDefault()
+
+* Get all:
+  input, select, textarea
+
+* Sort by DOM order
+
+* Move focus to next field
+
+* If last field:
+  → submit form
+
+==================================================
+SPECIAL CASES
+=============
+
+* Textarea:
+  → SHIFT + ENTER = new line
+  → ENTER = next field
+
+* Skip:
+
+  * hidden fields
+  * disabled fields
+
+==================================================
+UX IMPROVEMENT
+==============
+
+* Add focus highlight
+* Smooth transition
+
+==================================================
+2. MEMO / INVOICE FEATURE
+=========================
+
+Create module:
+/invoice
+
+==================================================
+DATABASE TABLE: invoices
+========================
+
+Fields:
+
+* id
+* nomor_invoice
+* tanggal
+* pelanggan
+* kontak_pelanggan
+* keterangan
+* catatan
+
+==================================================
+INVOICE ITEMS TABLE
+===================
+
+invoice_items:
+
+* id
+* invoice_id
+* nama_item
+* jumlah
+* satuan
+* harga_satuan
+
+==================================================
+LOGIC (IMPORTANT)
+=================
+
+* total_item = jumlah × harga_satuan
+
+* total_invoice = SUM(total_item)
+
+* DO NOT store total statically if possible
+
+* Calculate dynamically
+
+==================================================
+3. FRONTEND UI (INVOICE)
+========================
+
+Create:
+/public/invoice.html
+
+Features:
+
+A. Header:
+
+* Nomor Invoice
+* Tanggal
+* Pelanggan
+* Kontak
+
+B. Dynamic table:
+
+* Add/remove rows
+* Columns:
+  nama_item, jumlah, satuan, harga_satuan, total
+
+C. Auto calculation:
+
+* Per item
+* Grand total
+
+D. Notes:
+
+* Catatan
+
+==================================================
+4. INVOICE OUTPUT (PRINT & PDF)
+===============================
+
+Layout:
+
+HEADER:
+
+* "MEMO / INVOICE"
+* Nomor & tanggal
+
+BODY:
+
+* Table items
+* Total
+
+FOOTER:
+
+* Catatan
+
+SIGNATURE:
+
+* Dibuat oleh
+* Diterima oleh
+* Tanggal: ______
+
+==================================================
+5. EXPORT FEATURES
+==================
+
+* Export PDF
+* Print
+* Excel (optional)
+
+==================================================
+6. FINANCIAL SUMMARY (VERY IMPORTANT)
+=====================================
+
+Apply to:
+
+* Laporan Pembelian
+* Laporan Pengajuan
+
+CALCULATIONS:
+
+* total_pengeluaran = SUM(harga_total dari purchases / purchase_plans)
+
+* total_kas_masuk = SUM(cash_in.jumlah_kas_masuk)
+
+* saldo_akhir = total_kas_masuk - total_pengeluaran
+
+* kekurangan_dana:
+  IF saldo_akhir < 0:
+  kekurangan_dana = ABS(saldo_akhir)
+  ELSE:
+  kekurangan_dana = 0
+
+IMPORTANT RULES:
+
+* DO NOT store saldo_akhir in database
+* Calculate dynamically at runtime
+* Ensure consistent across PDF, Print, Excel
+
+==================================================
+7. DISPLAY IN REPORT (PRINT / PDF / EXCEL)
+==========================================
+
+At the BOTTOM of report, add section:
+
+---
+
+TOTAL PENGELUARAN : Rp XXXXX
+TOTAL KAS MASUK   : Rp XXXXX
+----------------------------
+
+SALDO AKHIR       : Rp XXXXX
+
+IF saldo negatif:
+KEKURANGAN DANA   : Rp XXXXX
+----------------------------
+
+Rules:
+
+* Highlight saldo akhir (bold)
+* Highlight kekurangan dana (if exists)
+* Format currency (Rp)
+
+==================================================
+8. VALIDATION
+=============
+
+* nomor_invoice → required
+* tanggal → valid
+* minimal 1 item
+* jumlah & harga > 0
+
+==================================================
+9. USER EXPERIENCE
+==================
+
+* Tambah Item button
+* Hapus Item button
+* Auto focus new row
+
+==================================================
+10. OPTIONAL
+============
+
+* Auto nomor invoice
+* Preview print
+* Save draft
+
+==================================================
+11. IMPORTANT RULES
+===================
+
+* Do NOT break existing system
+* Keep modular structure
+* Ensure accurate calculation
+* Ensure smooth navigation
+* Prevent inconsistent financial data
+
+==================================================
+
+Implement cleanly and ensure professional user experience with correct financial reporting.
